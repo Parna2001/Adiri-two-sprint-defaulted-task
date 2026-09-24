@@ -1,4 +1,5 @@
-﻿<title>Defaulted Tasks</title>
+﻿<meta charset="utf-8">
+<title>Defaulted Tasks</title>
 <style>
   :root {
     color-scheme: light;
@@ -624,21 +625,21 @@
     btn.hidden = true;
     btn.disabled = false;
     if (kind === "loading") {
-      text.textContent = "Loading snapshotâ€¦";
+      text.textContent = "Loading snapshot…";
     } else if (kind === "syncing") {
-      text.textContent = "Syncing with Jiraâ€¦";
+      text.textContent = "Syncing with Jira…";
     } else if (kind === "live") {
-      text.textContent = "Live from Jira â€” synced " + new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+      text.textContent = "Live from Jira — synced " + new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
       btn.hidden = false;
     } else if (kind === "unavailable") {
-      text.textContent = "Static snapshot â€” connect the Atlassian Rovo connector in claude.ai Settings â†’ Connectors to enable live sync.";
+      text.textContent = "Static snapshot — connect the Atlassian Rovo connector in claude.ai Settings → Connectors to enable live sync.";
     } else if (kind === "needs_reauth") {
-      text.textContent = "Jira connection lapsed â€” reconnect Atlassian Rovo in claude.ai Settings â†’ Connectors.";
+      text.textContent = "Jira connection lapsed — reconnect Atlassian Rovo in claude.ai Settings → Connectors.";
       btn.hidden = false;
     } else if (kind === "server_not_connected") {
-      text.textContent = "Atlassian Rovo isn't connected â€” add it in claude.ai Settings â†’ Connectors to enable live sync.";
+      text.textContent = "Atlassian Rovo isn't connected — add it in claude.ai Settings → Connectors to enable live sync.";
     } else if (kind === "error") {
-      text.textContent = "Couldn't sync with Jira" + (meta && meta.message ? " (" + meta.message + ")" : "") + " â€” showing last known data.";
+      text.textContent = "Couldn't sync with Jira" + (meta && meta.message ? " (" + meta.message + ")" : "") + " — showing last known data.";
       btn.hidden = false;
     }
   }
