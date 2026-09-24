@@ -1,0 +1,4969 @@
+﻿<title>Defaulted Tasks</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f9f9f7;
+    --surface: #fcfcfb;
+    --surface-raised: #ffffff;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #898781;
+    --border: rgba(11,11,11,0.10);
+    --grid: #e1e0d9;
+    --accent: #2a78d6;
+    --accent-soft: #cde2fb;
+    --accent-ink: #184f95;
+    --status-good: #0ca30c;
+    --status-warning: #fab219;
+    --status-serious: #ec835a;
+    --status-critical: #d03b3b;
+    --row-hover: #f0efec;
+    --chip-bg: #f0efec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0d0d0d;
+      --surface: #1a1a19;
+      --surface-raised: #202020;
+      --text-primary: #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted: #898781;
+      --border: rgba(255,255,255,0.10);
+      --grid: #2c2c2a;
+      --accent: #3987e5;
+      --accent-soft: #184f95;
+      --accent-ink: #cde2fb;
+      --status-good: #0ca30c;
+      --status-warning: #fab219;
+      --status-serious: #ec835a;
+      --status-critical: #d03b3b;
+      --row-hover: #242422;
+      --chip-bg: #242422;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-raised: #202020;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #898781;
+    --border: rgba(255,255,255,0.10);
+    --grid: #2c2c2a;
+    --accent: #3987e5;
+    --accent-soft: #184f95;
+    --accent-ink: #cde2fb;
+    --status-good: #0ca30c;
+    --status-warning: #fab219;
+    --status-serious: #ec835a;
+    --status-critical: #d03b3b;
+    --row-hover: #242422;
+    --chip-bg: #242422;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding-inline: 20px;
+    padding-block: 20px 40px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+
+  header.page { margin-bottom: 20px; }
+  .eyebrow {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--accent-ink); margin: 0 0 6px;
+  }
+  h1 { font-size: 26px; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .subtitle { font-size: 14px; color: var(--text-secondary); margin: 0; }
+
+  .sync-bar {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-size: 12.5px; color: var(--text-secondary);
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 12px; margin-bottom: 16px;
+  }
+  .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); flex: none; }
+  .sync-dot.live { background: var(--status-good); box-shadow: 0 0 0 3px rgba(12,163,12,0.15); }
+  .sync-dot.syncing { background: var(--status-warning); animation: sync-pulse 1.1s ease-in-out infinite; }
+  .sync-dot.error, .sync-dot.needs_reauth { background: var(--status-critical); }
+  @keyframes sync-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .sync-btn {
+    margin-left: auto; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--surface-raised); color: var(--accent-ink); cursor: pointer;
+  }
+  .sync-btn:hover:not(:disabled) { border-color: var(--accent); }
+  .sync-btn:disabled { opacity: 0.5; cursor: default; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin: 20px 0 22px;
+  }
+  .stat-tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .stat-tile .label { font-size: 11.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+  .stat-tile .value { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 4px; }
+  .stat-tile.grand { border-color: var(--accent); background: linear-gradient(180deg, var(--accent-soft) 0%, var(--surface) 130%); }
+  .stat-tile.grand .value { color: var(--accent-ink); }
+  .stat-tile .sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px 14px;
+    margin-bottom: 22px;
+  }
+  .chart-title { font-size: 13px; font-weight: 700; color: var(--text-secondary); margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .chart-hint { font-size: 12px; color: var(--text-muted); margin: 0 0 16px; }
+  .bar-plot { position: relative; padding-left: 2px; }
+  .bar-row, .bar-ticks-row { display: flex; align-items: center; gap: 14px; }
+  .bar-row { margin-bottom: 16px; border-radius: 6px; transition: opacity 0.2s ease; }
+  .bar-row-label, .bar-row-spacer { flex: 0 0 190px; min-width: 0; }
+  .bar-sprint-name { display: block; font-size: 13px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-row-label .state-badge { margin-top: 3px; }
+  .bar-track { flex: 1 1 auto; position: relative; height: 26px; background: var(--chip-bg); border-radius: 4px; min-width: 0; }
+  .bar-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+  .bar-value, .bar-value-spacer { flex: 0 0 44px; font-size: 13.5px; font-weight: 800; color: var(--text-primary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .bar-row-clickable { cursor: pointer; }
+  .bar-row-clickable:hover .bar-sprint-name { color: var(--accent); }
+  .bar-row-clickable:hover .bar-track { outline: 1px solid var(--accent); outline-offset: 1px; }
+  .bar-row-clickable:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .bar-plot.has-selection .bar-row:not(.selected) { opacity: 0.4; }
+  .bar-row.selected .bar-sprint-name { color: var(--accent-ink); }
+  .bar-row.selected .bar-track { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .bar-ticks-row { margin-top: 2px; }
+  .bar-ticks-track { flex: 1 1 auto; display: flex; justify-content: space-between; min-width: 0; }
+  .bar-ticks-track span { font-size: 10.5px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .bar-gridlines { position: absolute; inset: 0; display: flex; justify-content: space-between; pointer-events: none; }
+  .bar-gridlines span { width: 1px; height: 100%; background: var(--grid); }
+
+  .controls {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    margin-bottom: 18px;
+  }
+  .search {
+    flex: 1 1 220px;
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 14px;
+    color: var(--text-primary);
+  }
+  .search:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .search::placeholder { color: var(--text-muted); }
+
+  .select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 30px 9px 12px;
+    font-size: 14px;
+    color: var(--text-primary);
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+  .chip-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    font-size: 12.5px; font-weight: 600; padding: 7px 12px; border-radius: 999px;
+    background: var(--chip-bg); border: 1px solid var(--border); color: var(--text-secondary);
+    cursor: pointer; user-select: none; white-space: nowrap;
+  }
+  .chip:hover { border-color: var(--accent); }
+  .chip[aria-pressed="true"] {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+  .chip .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+
+  section.sprint { margin-bottom: 26px; }
+  .sprint-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+    flex-wrap: wrap;
+    padding: 4px 2px 10px;
+    border-bottom: 2px solid var(--grid);
+    margin-bottom: 0;
+  }
+  .sprint-title-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .sprint-name { font-size: 17px; font-weight: 800; }
+  .state-badge {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 3px 8px; border-radius: 5px;
+  }
+  .state-badge.active { background: var(--accent); color: #fff; }
+  .state-badge.closed { background: var(--chip-bg); color: var(--text-secondary); border: 1px solid var(--border); }
+  .state-badge.rank { background: var(--chip-bg); color: var(--text-muted); border: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+  .sprint-range { font-size: 12.5px; color: var(--text-muted); }
+  .sprint-count { font-size: 14px; color: var(--text-secondary); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .sprint-count b { color: var(--text-primary); font-size: 16px; }
+
+  .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-top: none; border-radius: 0 0 10px 10px; background: var(--surface); }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 720px; }
+  thead th {
+    position: sticky; top: 0; background: var(--surface-raised);
+    text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-muted); font-weight: 700; padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer; white-space: nowrap;
+  }
+  thead th.num { text-align: right; }
+  thead th .arrow { opacity: 0.35; font-size: 10px; margin-left: 3px; }
+  thead th.sorted .arrow { opacity: 1; color: var(--accent); }
+  tbody td { padding: 9px 12px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--row-hover); }
+  tbody tr[hidden] { display: none; }
+
+  td.key a { color: var(--accent); text-decoration: none; font-weight: 700; font-variant-numeric: tabular-nums; }
+  td.key a:hover { text-decoration: underline; }
+  td.summary { color: var(--text-primary); max-width: 340px; }
+  td.assignee { color: var(--text-secondary); white-space: nowrap; }
+  td.due { color: var(--text-secondary); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  td.status .status-pill {
+    display: inline-block; font-size: 11.5px; font-weight: 600; padding: 2px 8px;
+    border-radius: 5px; background: var(--chip-bg); color: var(--text-secondary); border: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td.overdue { text-align: right; white-space: nowrap; }
+  .overdue-wrap { display: inline-flex; align-items: center; gap: 6px; justify-content: flex-end; }
+  .overdue-num { font-weight: 800; font-variant-numeric: tabular-nums; font-size: 14px; }
+  .sev-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .sev-label { font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700; }
+
+  .empty-row td { text-align: center; color: var(--text-muted); padding: 24px; font-size: 13.5px; }
+
+  footer.note { margin-top: 18px; font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+  footer.note code { background: var(--chip-bg); padding: 1px 5px; border-radius: 4px; }
+
+  @media (max-width: 560px) {
+    h1 { font-size: 21px; }
+    .stat-tile .value { font-size: 22px; }
+    td.summary { max-width: 200px; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="page">
+    <p class="eyebrow">ADIRI &middot; Jira Project AD</p>
+    <h1>Defaulted Tasks</h1>
+    <p class="subtitle">Overdue, unfinished tasks across the last two sprints</p>
+  </header>
+
+  <div class="sync-bar" id="sync-bar">
+    <span class="sync-dot" id="sync-dot"></span>
+    <span class="sync-text" id="sync-text">Loading snapshot&hellip;</span>
+    <button class="sync-btn" id="sync-refresh" type="button" hidden>Refresh now</button>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="chart-card">
+    <p class="chart-title">Defaulted tasks by assignee &mdash; highest to lowest</p>
+    <p class="chart-hint">Click a name to filter the task list below to that assignee. Click again to clear.</p>
+    <div id="bar-chart-assignee"></div>
+  </div>
+
+  <div class="controls">
+    <input class="search" id="search" type="text" placeholder="Filter by key, summary, or assignee&hellip;" />
+    <select class="select" id="assignee-filter">
+      <option value="all">All assignees</option>
+    </select>
+    <div class="chip-group" id="severity-filters">
+      <button class="chip" data-severity="all" aria-pressed="true">All severities</button>
+      <button class="chip" data-severity="Recent"><span class="dot" style="background:var(--status-warning)"></span>Recent (&le;7d)</button>
+      <button class="chip" data-severity="Aging"><span class="dot" style="background:var(--status-serious)"></span>Aging (8&ndash;30d)</button>
+      <button class="chip" data-severity="Severe"><span class="dot" style="background:var(--status-critical)"></span>Severe (&gt;30d)</button>
+    </div>
+  </div>
+
+  <div id="sprints"></div>
+
+  <footer class="note">
+    Excludes tasks labeled <code>reminder</code>, <code>adiri-monthly</code>, <code>adiri-weekly</code>, <code>salon weekly</code>, <code>salon monthly</code>, <code>bimonthly</code>, <code>daily task</code>, <code>payment duedate</code>, or <code>housekeeping</code>. "Defaulted" = due date has passed and status is not Done/Closed. Click a column header to sort within a sprint; click a task key to open it in Jira.
+  </footer>
+</div>
+
+<script>
+(function () {
+  var SPRINTS = [
+    { name: "SPR SEP(21-26) 2026", state: "Active", range: "Sep 19 &ndash; 26, 2026" },
+    { name: "SPR SEP(14-19) 2026", state: "Closed", range: "Sep 14 &ndash; 19, 2026" }
+  ];
+  var TEAM_ROSTER = ["Anurima Nath", "Atreyee Majumder", "Debnath Paul", "Debrup Mondal", "Madhuparna Naskar", "Pradip Ray", "Pratim Rath", "Rahul Paul", "Srijan Banerjee"];
+
+  function severityOf(days) {
+    if (days <= 7) return "Recent";
+    if (days <= 30) return "Aging";
+    return "Severe";
+  }
+  function severityColorVar(sev) {
+    if (sev === "Recent") return "var(--status-warning)";
+    if (sev === "Aging") return "var(--status-serious)";
+    return "var(--status-critical)";
+  }
+  function fmtDate(iso) {
+    var d = new Date(iso + "T00:00:00");
+    if (isNaN(d)) return iso;
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  var state = { search: "", severity: "all", assignee: "all", sort: {} };
+
+  function applyFilters(rows) {
+    var q = state.search.trim().toLowerCase();
+    return rows.filter(function (r) {
+      if (state.severity !== "all" && r._severity !== state.severity) return false;
+      if (state.assignee !== "all" && r.Assignee !== state.assignee) return false;
+      if (!q) return true;
+      return (
+        r.Key.toLowerCase().indexOf(q) !== -1 ||
+        r.Summary.toLowerCase().indexOf(q) !== -1 ||
+        r.Assignee.toLowerCase().indexOf(q) !== -1
+      );
+    });
+  }
+
+  function sortRows(rows, sprintName) {
+    var s = state.sort[sprintName] || { col: "DaysOverdue", dir: "desc" };
+    var col = s.col, dir = s.dir === "asc" ? 1 : -1;
+    return rows.slice().sort(function (a, b) {
+      var av = a[col], bv = b[col];
+      if (col === "DaysOverdue") { av = a.DaysOverdue; bv = b.DaysOverdue; }
+      if (col === "DueDate") { av = a.DueDate; bv = b.DueDate; }
+      if (typeof av === "string") av = av.toLowerCase();
+      if (typeof bv === "string") bv = bv.toLowerCase();
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+  }
+
+  function renderStats(all) {
+    var el = document.getElementById("stats");
+    var bySprint = {};
+    SPRINTS.forEach(function (s) { bySprint[s.name] = 0; });
+    all.forEach(function (r) { bySprint[r.Sprint] = (bySprint[r.Sprint] || 0) + 1; });
+
+    var html = '<div class="stat-tile grand"><div class="label">Grand total</div><div class="value">' + all.length + '</div><div class="sub">defaulted tasks</div></div>';
+    SPRINTS.forEach(function (s) {
+      html += '<div class="stat-tile"><div class="label">' + escapeHtml(s.name) + '</div><div class="value">' + (bySprint[s.name] || 0) + '</div><div class="sub">' + s.state + ' &middot; ' + s.range + '</div></div>';
+    });
+    el.innerHTML = html;
+  }
+
+  function niceStep(rawStep) {
+    var mag = Math.pow(10, Math.floor(Math.log(rawStep) / Math.LN10));
+    var norm = rawStep / mag;
+    var niceNorm = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10;
+    return niceNorm * mag;
+  }
+  function computeTicks(maxValue, targetCount) {
+    if (maxValue <= 0) return { max: 1, ticks: [0, 1] };
+    var step = niceStep(maxValue / targetCount);
+    var niceMax = Math.ceil(maxValue / step) * step;
+    var ticks = [];
+    for (var v = 0; v <= niceMax + 1e-9; v += step) ticks.push(Math.round(v));
+    return { max: niceMax, ticks: ticks };
+  }
+
+  // items: [{ label, badge: {text, cls} | null, value, color }]
+  // opts: { clickable, selected, onClick(label) }
+  function renderBarChart(elId, items, targetTickCount, opts) {
+    opts = opts || {};
+    var el = document.getElementById(elId);
+    var maxVal = Math.max.apply(null, items.map(function (it) { return it.value; }).concat([0]));
+    var scale = computeTicks(maxVal, targetTickCount || 5);
+    var hasSelection = !!opts.selected;
+
+    var rows = items.map(function (it) {
+      var pct = scale.max ? (it.value / scale.max) * 100 : 0;
+      var isSelected = opts.selected === it.label;
+      var rowCls = "bar-row" + (opts.clickable ? " bar-row-clickable" : "") + (isSelected ? " selected" : "");
+      var a11y = opts.clickable ? ' tabindex="0" role="button" aria-pressed="' + isSelected + '" aria-label="Filter task list to ' + escapeHtml(it.label) + '"' : "";
+      return '<div class="' + rowCls + '" data-label="' + escapeHtml(it.label) + '"' + a11y + '>' +
+        '<div class="bar-row-label">' +
+          '<span class="bar-sprint-name">' + escapeHtml(it.label) + "</span>" +
+          (it.badge ? '<span class="state-badge ' + it.badge.cls + '">' + escapeHtml(it.badge.text) + "</span>" : "") +
+        "</div>" +
+        '<div class="bar-track">' +
+          '<div class="bar-gridlines">' + scale.ticks.map(function () { return "<span></span>"; }).join("") + "</div>" +
+          '<div class="bar-fill" style="width:' + pct + '%; background:' + it.color + ';"></div>' +
+        "</div>" +
+        '<span class="bar-value">' + it.value + "</span>" +
+      "</div>";
+    }).join("");
+
+    var tickRow = '<div class="bar-ticks-row">' +
+      '<div class="bar-row-spacer"></div>' +
+      '<div class="bar-ticks-track">' + scale.ticks.map(function (t) { return "<span>" + t + "</span>"; }).join("") + "</div>" +
+      '<span class="bar-value-spacer"></span>' +
+    "</div>";
+
+    el.innerHTML = '<div class="bar-plot' + (hasSelection ? " has-selection" : "") + '">' + rows + tickRow + "</div>";
+
+    if (opts.clickable && opts.onClick) {
+      el.querySelectorAll(".bar-row-clickable").forEach(function (rowEl) {
+        var label = rowEl.getAttribute("data-label");
+        rowEl.addEventListener("click", function () { opts.onClick(label); });
+        rowEl.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); opts.onClick(label); }
+        });
+      });
+    }
+  }
+
+  function renderAssigneeChart(all) {
+    var counts = {};
+    (typeof TEAM_ROSTER !== "undefined" ? TEAM_ROSTER : []).forEach(function (name) { counts[name] = 0; });
+    all.forEach(function (r) { counts[r.Assignee] = (counts[r.Assignee] || 0) + 1; });
+    var names = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; });
+
+    var items = names.map(function (name, i) {
+      return {
+        label: name,
+        badge: { text: "#" + (i + 1), cls: "rank" },
+        value: counts[name],
+        color: "var(--accent)"
+      };
+    });
+    renderBarChart("bar-chart-assignee", items, 5, {
+      clickable: true,
+      selected: state.assignee !== "all" ? state.assignee : null,
+      onClick: function (label) {
+        state.assignee = state.assignee === label ? "all" : label;
+        document.getElementById("assignee-filter").value = state.assignee;
+        renderAssigneeChart(ALL_ROWS);
+        render();
+        var target = document.getElementById("sprints");
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  }
+
+  function populateAssigneeFilter(all) {
+    var sel = document.getElementById("assignee-filter");
+    var counts = {};
+    (typeof TEAM_ROSTER !== "undefined" ? TEAM_ROSTER : []).forEach(function (name) { counts[name] = 0; });
+    all.forEach(function (r) { counts[r.Assignee] = (counts[r.Assignee] || 0) + 1; });
+    var names = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; });
+    var keepSelection = names.indexOf(state.assignee) !== -1 ? state.assignee : "all";
+    sel.innerHTML = '<option value="all">All assignees</option>';
+    names.forEach(function (name) {
+      var opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name + " (" + counts[name] + ")";
+      sel.appendChild(opt);
+    });
+    state.assignee = keepSelection;
+    sel.value = keepSelection;
+  }
+
+  function columnLabel(col) {
+    return { Key: "Key", Summary: "Summary", Assignee: "Assignee", DueDate: "Due date", Status: "Status", DaysOverdue: "Days overdue" }[col];
+  }
+
+  function renderSprintTable(sprintMeta, rows) {
+    var visible = sortRows(applyFilters(rows), sprintMeta.name);
+    var cols = ["Key", "Summary", "Assignee", "DueDate", "Status", "DaysOverdue"];
+    var sortState = state.sort[sprintMeta.name] || { col: "DaysOverdue", dir: "desc" };
+
+    var thead = "<thead><tr>" + cols.map(function (c) {
+      var sorted = sortState.col === c;
+      var arrow = sorted ? (sortState.dir === "desc" ? "&#9660;" : "&#9650;") : "&#9660;";
+      var numCls = c === "DaysOverdue" ? " num" : "";
+      return '<th class="' + (sorted ? "sorted" : "") + numCls + '" data-col="' + c + '" data-sprint="' + escapeHtml(sprintMeta.name) + '">' + columnLabel(c) + '<span class="arrow">' + arrow + '</span></th>';
+    }).join("") + "</tr></thead>";
+
+    var body = "";
+    if (visible.length === 0) {
+      body = '<tr class="empty-row"><td colspan="6">No tasks match the current filters.</td></tr>';
+    } else {
+      body = visible.map(function (r) {
+        var sev = r._severity;
+        return "<tr>" +
+          '<td class="key"><a href="https://aiincorg.atlassian.net/browse/' + encodeURIComponent(r.Key) + '" target="_blank" rel="noopener">' + escapeHtml(r.Key) + "</a></td>" +
+          '<td class="summary">' + escapeHtml(r.Summary) + "</td>" +
+          '<td class="assignee">' + escapeHtml(r.Assignee) + "</td>" +
+          '<td class="due">' + fmtDate(r.DueDate) + "</td>" +
+          '<td class="status"><span class="status-pill">' + escapeHtml(r.Status) + "</span></td>" +
+          '<td class="overdue"><span class="overdue-wrap"><span class="sev-dot" style="background:' + severityColorVar(sev) + '"></span><span class="overdue-num">' + r.DaysOverdue + 'd</span><span class="sev-label">' + sev + "</span></span></td>" +
+          "</tr>";
+      }).join("");
+    }
+
+    return '<div class="table-scroll"><table>' + thead + "<tbody>" + body + "</tbody></table></div>";
+  }
+
+  var ALL_ROWS = [];
+
+  function render() {
+    var container = document.getElementById("sprints");
+    var html = "";
+    SPRINTS.forEach(function (meta) {
+      var rows = ALL_ROWS.filter(function (r) { return r.Sprint === meta.name; });
+      var visibleCount = applyFilters(rows).length;
+      html += '<section class="sprint">' +
+        '<div class="sprint-head">' +
+          '<div class="sprint-title-group">' +
+            '<span class="sprint-name">' + escapeHtml(meta.name) + "</span>" +
+            '<span class="state-badge ' + meta.state.toLowerCase() + '">' + meta.state + "</span>" +
+            '<span class="sprint-range">' + meta.range + "</span>" +
+          "</div>" +
+          '<span class="sprint-count"><b>' + visibleCount + "</b> / " + rows.length + " shown</span>" +
+        "</div>" +
+        renderSprintTable(meta, rows) +
+        "</section>";
+    });
+    container.innerHTML = html;
+
+    container.querySelectorAll("thead th").forEach(function (th) {
+      th.addEventListener("click", function () {
+        var col = th.getAttribute("data-col");
+        var sprint = th.getAttribute("data-sprint");
+        var cur = state.sort[sprint] || { col: "DaysOverdue", dir: "desc" };
+        var dir = cur.col === col && cur.dir === "desc" ? "asc" : "desc";
+        state.sort[sprint] = { col: col, dir: dir };
+        render();
+      });
+    });
+  }
+
+  function refreshAll() {
+    renderStats(ALL_ROWS);
+    renderAssigneeChart(ALL_ROWS);
+    populateAssigneeFilter(ALL_ROWS);
+    render();
+  }
+
+  function seedFromSnapshot(rows) {
+    ALL_ROWS = rows.map(function (r) {
+      r._severity = severityOf(r.DaysOverdue);
+      return r;
+    });
+    refreshAll();
+  }
+
+  function wireControls() {
+    document.getElementById("search").addEventListener("input", function (e) {
+      state.search = e.target.value;
+      render();
+    });
+
+    document.getElementById("assignee-filter").addEventListener("change", function (e) {
+      state.assignee = e.target.value;
+      renderAssigneeChart(ALL_ROWS);
+      render();
+    });
+
+    document.querySelectorAll("#severity-filters .chip").forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        document.querySelectorAll("#severity-filters .chip").forEach(function (c) { c.setAttribute("aria-pressed", "false"); });
+        chip.setAttribute("aria-pressed", "true");
+        state.severity = chip.getAttribute("data-severity");
+        render();
+      });
+    });
+
+    document.getElementById("sync-refresh").addEventListener("click", function () {
+      refreshFromJira();
+    });
+  }
+
+  // ---- Live Jira sync -------------------------------------------------
+  var CLOUD_ID = "a4706d26-f792-4cbe-97a1-58e720c74a1a";
+  var SEARCH_TOOL = "searchJiraIssuesUsingJql";
+  var REFRESH_MS = 5 * 60 * 1000;
+  var EXCLUDED_LABELS = '"remainder", Adiri_monthly, Adiri_weekly, salon_weekly, salon_monthly, bimonthly, "daily-task", "Payment-Duedate", Housekeeping';
+  var mcpNS = null;
+  var mcpServer = null;
+
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+  function fmtRange(startIso, endIso) {
+    var s = new Date(startIso), e = new Date(endIso);
+    var sMon = s.toLocaleDateString("en-US", { month: "short" });
+    var eMon = e.toLocaleDateString("en-US", { month: "short" });
+    var y = e.getFullYear();
+    return sMon === eMon
+      ? sMon + " " + s.getDate() + " &ndash; " + e.getDate() + ", " + y
+      : sMon + " " + s.getDate() + " &ndash; " + eMon + " " + e.getDate() + ", " + y;
+  }
+  function buildDefaultedJql(ids) {
+    return 'project = AD AND sprint in (' + ids.join(",") + ') AND duedate < "' + todayStr() +
+      '" AND statusCategory != Done AND labels not in (' + EXCLUDED_LABELS + ') ORDER BY duedate ASC';
+  }
+
+  function setSyncStatus(kind, meta) {
+    var dot = document.getElementById("sync-dot");
+    var text = document.getElementById("sync-text");
+    var btn = document.getElementById("sync-refresh");
+    dot.className = "sync-dot " + kind;
+    btn.hidden = true;
+    btn.disabled = false;
+    if (kind === "loading") {
+      text.textContent = "Loading snapshotâ€¦";
+    } else if (kind === "syncing") {
+      text.textContent = "Syncing with Jiraâ€¦";
+    } else if (kind === "live") {
+      text.textContent = "Live from Jira â€” synced " + new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+      btn.hidden = false;
+    } else if (kind === "unavailable") {
+      text.textContent = "Static snapshot â€” connect the Atlassian Rovo connector in claude.ai Settings â†’ Connectors to enable live sync.";
+    } else if (kind === "needs_reauth") {
+      text.textContent = "Jira connection lapsed â€” reconnect Atlassian Rovo in claude.ai Settings â†’ Connectors.";
+      btn.hidden = false;
+    } else if (kind === "server_not_connected") {
+      text.textContent = "Atlassian Rovo isn't connected â€” add it in claude.ai Settings â†’ Connectors to enable live sync.";
+    } else if (kind === "error") {
+      text.textContent = "Couldn't sync with Jira" + (meta && meta.message ? " (" + meta.message + ")" : "") + " â€” showing last known data.";
+      btn.hidden = false;
+    }
+  }
+
+  function transformNodes(nodes, sprintIds) {
+    var idSet = {};
+    sprintIds.forEach(function (id) { idSet[id] = true; });
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var rows = [];
+    nodes.forEach(function (n) {
+      var f = n.fields;
+      if (!f || !f.duedate) return;
+      var sprintMatch = (f.customfield_10020 || []).filter(function (s) { return idSet[s.id]; });
+      var due = new Date(f.duedate + "T00:00:00");
+      rows.push({
+        Key: n.key,
+        Summary: f.summary,
+        Assignee: (f.assignee && f.assignee.displayName) || "Unassigned",
+        DueDate: f.duedate,
+        Status: f.status.name,
+        Sprint: sprintMatch.length ? sprintMatch[0].name : "Unknown sprint",
+        DaysOverdue: Math.round((today - due) / 86400000)
+      });
+    });
+    return rows;
+  }
+
+  function callSearch(input) {
+    return mcpNS.callTool(mcpServer, SEARCH_TOOL, input, { cache: false });
+  }
+
+  async function detectSprints() {
+    var res = await callSearch({
+      cloudId: CLOUD_ID,
+      jql: "project = AD AND sprint is not EMPTY ORDER BY updated DESC",
+      maxResults: 50,
+      fields: ["customfield_10020"]
+    });
+    var nodes = (res.payload && res.payload.issues && res.payload.issues.nodes) || [];
+    var byId = {};
+    nodes.forEach(function (n) {
+      ((n.fields && n.fields.customfield_10020) || []).forEach(function (s) { byId[s.id] = s; });
+    });
+    var all = Object.keys(byId).map(function (k) { return byId[k]; });
+    var active = all.filter(function (s) { return s.state === "active"; });
+    var closed = all.filter(function (s) { return s.state === "closed"; })
+      .sort(function (a, b) { return new Date(b.endDate) - new Date(a.endDate); });
+    var chosen = [];
+    if (active.length) chosen.push(active[0]);
+    closed.forEach(function (s) { if (chosen.length < 2) chosen.push(s); });
+    return chosen.slice(0, 2);
+  }
+
+  async function fetchAllDefaulted(jql) {
+    var all = [];
+    var token;
+    var guard = 0;
+    do {
+      var input = {
+        cloudId: CLOUD_ID,
+        jql: jql,
+        maxResults: 100,
+        fields: ["summary", "assignee", "duedate", "status", "customfield_10020"]
+      };
+      if (token) input.nextPageToken = token;
+      var res = await callSearch(input);
+      var payload = res.payload && res.payload.issues;
+      all = all.concat((payload && payload.nodes) || []);
+      token = payload && payload.pageInfo && payload.pageInfo.hasNextPage ? payload.pageInfo.endCursor : null;
+      guard++;
+    } while (token && guard < 30);
+    return all;
+  }
+
+  async function refreshFromJira() {
+    if (!mcpNS || !mcpServer) return;
+    setSyncStatus("syncing");
+    try {
+      var sprints = await detectSprints();
+      if (!sprints.length) throw { message: "no active or recent sprint found" };
+      var ids = sprints.map(function (s) { return s.id; });
+      var nodes = await fetchAllDefaulted(buildDefaultedJql(ids));
+      var rows = transformNodes(nodes, ids);
+
+      SPRINTS = sprints.map(function (s) {
+        return { name: s.name, state: cap(s.state), range: fmtRange(s.startDate, s.endDate) };
+      });
+      ALL_ROWS = rows.map(function (r) { r._severity = severityOf(r.DaysOverdue); return r; });
+      refreshAll();
+      setSyncStatus("live");
+    } catch (err) {
+      var code = err && err.code;
+      if (code === "needs_reauth" || code === "server_not_connected" || code === "consent_required") {
+        setSyncStatus(code === "server_not_connected" ? "server_not_connected" : "needs_reauth");
+      } else {
+        setSyncStatus("error", err);
+      }
+    }
+  }
+
+  async function initLiveSync() {
+    if (!window.claude || !window.claude.use) { setSyncStatus("unavailable"); return; }
+    try {
+      mcpNS = await window.claude.use("mcp");
+    } catch (e) { mcpNS = null; }
+    if (!mcpNS) { setSyncStatus("unavailable"); return; }
+    try {
+      var list = await mcpNS.listTools();
+      var entry = (list.servers || [])[0];
+      if (!entry) { setSyncStatus("unavailable"); return; }
+      mcpServer = entry.server;
+    } catch (e) { setSyncStatus("unavailable"); return; }
+    await refreshFromJira();
+    setInterval(refreshFromJira, REFRESH_MS);
+  }
+
+  wireControls();
+
+  seedFromSnapshot([
+    {
+        "Key": "AD-772",
+        "Summary": "Saturday accounts report",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 115
+    },
+    {
+        "Key": "AD-7899",
+        "Summary": "Insuative and tropic club team channel group",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 94
+    },
+    {
+        "Key": "AD-7812",
+        "Summary": "Intuitive help desk and certifications agent  ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 94
+    },
+    {
+        "Key": "AD-7797",
+        "Summary": "Certification Teams Channel",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 94
+    },
+    {
+        "Key": "AD-7440",
+        "Summary": "jira version",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 94
+    },
+    {
+        "Key": "AD-7401",
+        "Summary": " create training  agents",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 94
+    },
+    {
+        "Key": "AD-7256",
+        "Summary": "Jay certifications group",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 94
+    },
+    {
+        "Key": "AD-5485",
+        "Summary": "DM IT Return",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 94
+    },
+    {
+        "Key": "AD-4533",
+        "Summary": "DVR Rack  ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 94
+    },
+    {
+        "Key": "AD-2356",
+        "Summary": "Pedicure lotus cream cap should be change",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 94
+    },
+    {
+        "Key": "AD-1307",
+        "Summary": "Cash handling Inform Mousumi for any problems tell me",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 94
+    },
+    {
+        "Key": "AD-95",
+        "Summary": "Folding bed",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 94
+    },
+    {
+        "Key": "AD-1330",
+        "Summary": "Data quality",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-23",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 93
+    },
+    {
+        "Key": "AD-1325",
+        "Summary": "Implement databrics auditing in a project number of files total number of rows time taken",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-23",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 93
+    },
+    {
+        "Key": "AD-1322",
+        "Summary": "Always do data staging before loading to main",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-23",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 93
+    },
+    {
+        "Key": "AD-7830",
+        "Summary": "add recorded links in Intuitive word document for intuitive agent",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-25",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 91
+    },
+    {
+        "Key": "AD-8258",
+        "Summary": "Salon T-shirt",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-27",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 89
+    },
+    {
+        "Key": "AD-7510",
+        "Summary": "check total GST amount paid through ERP",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-29",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 87
+    },
+    {
+        "Key": "AD-7380",
+        "Summary": "DM Approval",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-29",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 87
+    },
+    {
+        "Key": "AD-7210",
+        "Summary": "Intuitive Mail",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-29",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 87
+    },
+    {
+        "Key": "AD-6865",
+        "Summary": "Siemens Mails",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-29",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 87
+    },
+    {
+        "Key": "AD-5168",
+        "Summary": "Mobile+every other charges GST bill verify in Zoho",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-29",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 87
+    },
+    {
+        "Key": "AD-1110",
+        "Summary": "Scrummaster rupee one testing amount for on bank account",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-06-30",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 86
+    },
+    {
+        "Key": "AD-8427",
+        "Summary": "Orientation Session - PWC Dictatorship & Board Advisory Certificate(1/7/2026)",
+        "Assignee": "Atreyee Majumder",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-7264",
+        "Summary": "Confluent Certified Administrator for Apache Kafka\u00ae \u2014 CCAAK  ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-7224",
+        "Summary": "Databricks, Claude and Palantir Partnership",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-7134",
+        "Summary": "Update LinkedIn about section properly Also Naukri and others",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-5877",
+        "Summary": "List of Ivy League",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-5873",
+        "Summary": "Ivy League application plan and strategy",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-5862",
+        "Summary": "Ivy League apply every day",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-5800",
+        "Summary": "Mobile apps in members mobiles as required",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-5782",
+        "Summary": "US 8:00 AM automation",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-5780",
+        "Summary": "h Manager Good morning automation",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-5767",
+        "Summary": "Rural GPT University and Promotion and Publicity and investor funding",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-5763",
+        "Summary": "NGO new feature column family or others",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-5756",
+        "Summary": "Break the ice about my loud reading to members",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-5723",
+        "Summary": "How to install roof ventilators steel videos",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-5684",
+        "Summary": "Microsoft foundry examination dump",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-5682",
+        "Summary": "Appoint sales and relationship manager",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-5680",
+        "Summary": "Masi must throw the water at the outside rains for both of after both office cleaning as well as soon cleaning",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-5676",
+        "Summary": "Organised restaurant supply chain",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-5665",
+        "Summary": "Plan business for packaged frozen chicken",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-5664",
+        "Summary": "Salon billing app prototyping through prototyping Android app makers or Microsoft powerApp",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-5530",
+        "Summary": "Jira Version",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-2710",
+        "Summary": "MONTHLY TASK - 5TH",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-2708",
+        "Summary": "MONTHLY TASK - 29TH",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-2123",
+        "Summary": "DM Monthly report check task",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-906",
+        "Summary": "Thank Councilor for RD and Water",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 85
+    },
+    {
+        "Key": "AD-7985",
+        "Summary": "Salon discussions with Pradip and Srijan regarding timing",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-02",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 84
+    },
+    {
+        "Key": "AD-7463",
+        "Summary": "Share Databricks certificate with Jai and Biswajit, Mir",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-02",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 84
+    },
+    {
+        "Key": "AD-6373",
+        "Summary": "Palantir",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-02",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 84
+    },
+    {
+        "Key": "AD-5538",
+        "Summary": "Retrospection",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-02",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 84
+    },
+    {
+        "Key": "AD-787",
+        "Summary": "SSM discussion reorder",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-02",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 84
+    },
+    {
+        "Key": "AD-8498",
+        "Summary": "MX4 MOUSE",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 83
+    },
+    {
+        "Key": "AD-8489",
+        "Summary": "Requirement Proposal Mail",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 83
+    },
+    {
+        "Key": "AD-8488",
+        "Summary": "add Jay to the Learning and Development group.  ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 83
+    },
+    {
+        "Key": "AD-8191",
+        "Summary": "Salon Products Inventory",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 83
+    },
+    {
+        "Key": "AD-8059",
+        "Summary": "DM update: Pradip, monthly loans given in Zoho  ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 83
+    },
+    {
+        "Key": "AD-8047",
+        "Summary": "list of ledgers in Zoho",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 83
+    },
+    {
+        "Key": "AD-7491",
+        "Summary": "Amazon Bedrock Certification",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 83
+    },
+    {
+        "Key": "AD-7371",
+        "Summary": "Databricks certification reimbursement",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 83
+    },
+    {
+        "Key": "AD-6662",
+        "Summary": "Confirm SBI locker refund from Jadavpur to pal bazar",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 83
+    },
+    {
+        "Key": "AD-5920",
+        "Summary": "pr and sb several days leaves in jan & feb",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 83
+    },
+    {
+        "Key": "AD-5871",
+        "Summary": "videos for applying to ivy and phd",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 83
+    },
+    {
+        "Key": "AD-5868",
+        "Summary": "microsoft foundry certificate design, cv, update every portal",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 83
+    },
+    {
+        "Key": "AD-5857",
+        "Summary": "databricks nxt cert design, cv, all portals",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 83
+    },
+    {
+        "Key": "AD-5856",
+        "Summary": "update masters, cv, All portals",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 83
+    },
+    {
+        "Key": "AD-5854",
+        "Summary": "Vice President Data Practice",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 83
+    },
+    {
+        "Key": "AD-293",
+        "Summary": "Fix salary calculation issues ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 83
+    },
+    {
+        "Key": "AD-8011",
+        "Summary": "Intuitive AI training sessions should be continuous because we have to train and upskill a lot of non-AI resources to AI",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-06",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 80
+    },
+    {
+        "Key": "AD-7148",
+        "Summary": "Head hunters research and leadership positions agencies research",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-06",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 80
+    },
+    {
+        "Key": "AD-6754",
+        "Summary": "Jay databricks palatir helpme mail gujarat office",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-06",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 80
+    },
+    {
+        "Key": "AD-5513",
+        "Summary": "Linked items and child items difference in Jira ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-06",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 80
+    },
+    {
+        "Key": "AD-8493",
+        "Summary": "structured planning and investment required in this department",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-8415",
+        "Summary": "I don't know whether you are able to understand my commitment but I am sure you will be able to understand in the future",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-8414",
+        "Summary": "each one of you will be checking each other",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-7852",
+        "Summary": "suggest proper certifications for HR and PMO to Intuitive and Jai",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-7492",
+        "Summary": "Google Vertex AI certification",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-7418",
+        "Summary": "Intuitive. Take certificates. Take anthropic certificates from completed candidates.  ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-7151",
+        "Summary": "AI alternatives for LinkedIn and knockery",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-7027",
+        "Summary": "MNS",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-6679",
+        "Summary": "Siemens laptop",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-6527",
+        "Summary": "Snowflake Microsoft",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-5512",
+        "Summary": "Michael Page",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-5510",
+        "Summary": "Update all other portals",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-5250",
+        "Summary": "Salon brand partnership",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-4640",
+        "Summary": "MALLS",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-2209",
+        "Summary": "Hydra facial design",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-1279",
+        "Summary": "renu Don't touch mobiles during Customer",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-1254",
+        "Summary": "Proper implementation of leave request process to SM and then sm will discuss",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-788",
+        "Summary": "SM must remain in front of massi during work",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-771",
+        "Summary": "Don't tell anything Debarun and Ajay directly always routed through Pradeep",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-232",
+        "Summary": "RAI Rules XL",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 79
+    },
+    {
+        "Key": "AD-8492",
+        "Summary": "AI efficiency training and enablement and support across cross teams",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 78
+    },
+    {
+        "Key": "AD-8490",
+        "Summary": "6 month guaranteed outcome else closure audit table PMO normal Excel to Ai engineers Jay and vishvajit together in the header",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 78
+    },
+    {
+        "Key": "AD-8419",
+        "Summary": "No DM no excuses no miss validations know stories",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 78
+    },
+    {
+        "Key": "AD-8418",
+        "Summary": "I want 1000% commitment sincerity and dedication and responsibility",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 78
+    },
+    {
+        "Key": "AD-8417",
+        "Summary": "DM even my parents want allow is there come to know",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 78
+    },
+    {
+        "Key": "AD-8416",
+        "Summary": "DM I do not know anyone who is doing this has this level of commitment",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 78
+    },
+    {
+        "Key": "AD-7966",
+        "Summary": "Test ticket from jira-ai CLI",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 78
+    },
+    {
+        "Key": "AD-7535",
+        "Summary": "Next trip portable foldable bags",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 78
+    },
+    {
+        "Key": "AD-7282",
+        "Summary": "Check exact bank balance is through Zoho",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 78
+    },
+    {
+        "Key": "AD-7030",
+        "Summary": "Columbia",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 78
+    },
+    {
+        "Key": "AD-6925",
+        "Summary": "Anthropic Certificate Price Reimbursement",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 78
+    },
+    {
+        "Key": "AD-5653",
+        "Summary": "Breakfast for fabric Alliance",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 78
+    },
+    {
+        "Key": "AD-5154",
+        "Summary": "Denomination",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 78
+    },
+    {
+        "Key": "AD-1304",
+        "Summary": "Status of clip on board",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 78
+    },
+    {
+        "Key": "AD-877",
+        "Summary": "Babu titan watch",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 78
+    },
+    {
+        "Key": "AD-793",
+        "Summary": "4 taskbar reset",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 78
+    },
+    {
+        "Key": "AD-789",
+        "Summary": "Take actions from in salon list",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 78
+    },
+    {
+        "Key": "AD-8494",
+        "Summary": "the products we build for internal teams should be in a position to sell to other companies as well",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 77
+    },
+    {
+        "Key": "AD-8491",
+        "Summary": "lnd task force for solving any AI related issues across teams solutions and internal agentic AI guaranteed across platforms",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 77
+    },
+    {
+        "Key": "AD-8428",
+        "Summary": "An Overview of Modern Board(9/7/2026)",
+        "Assignee": "Atreyee Majumder",
+        "DueDate": "2026-07-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 77
+    },
+    {
+        "Key": "AD-7541",
+        "Summary": "next trip item list plan and pre-organize  ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 77
+    },
+    {
+        "Key": "AD-7358",
+        "Summary": "5 PB Cloud Databricks POC",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 77
+    },
+    {
+        "Key": "AD-7999",
+        "Summary": "Jay Mail for making PMO advance advanced and much more capable to prepare for AI",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-10",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 76
+    },
+    {
+        "Key": "AD-8015",
+        "Summary": "DM 45214743531 SBI",
+        "Assignee": "Rahul Paul",
+        "DueDate": "2026-07-11",
+        "Status": "In Progress",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 75
+    },
+    {
+        "Key": "AD-6206",
+        "Summary": "Savlon issue",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 75
+    },
+    {
+        "Key": "AD-8590",
+        "Summary": "watch cover",
+        "Assignee": "Srijan Banerjee",
+        "DueDate": "2026-07-13",
+        "Status": "Feedback",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 73
+    },
+    {
+        "Key": "AD-8311",
+        "Summary": "Efficiency rewards update everywhere",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-13",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 73
+    },
+    {
+        "Key": "AD-7661",
+        "Summary": "L&D Performance Graph and Dashboard",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-14",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 72
+    },
+    {
+        "Key": "AD-7536",
+        "Summary": "Next trip products courier system decision",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-14",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 72
+    },
+    {
+        "Key": "AD-7496",
+        "Summary": "anthropic sales team from LinkedIn for Intuitive",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-14",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 72
+    },
+    {
+        "Key": "AD-7484",
+        "Summary": "Intuitive Anthropic partnership enablement initiative",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-14",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 72
+    },
+    {
+        "Key": "AD-5302",
+        "Summary": "Journal Research Associate",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-14",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 72
+    },
+    {
+        "Key": "AD-1303",
+        "Summary": "No rewards will be given if any complaints because we're losing customers",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-14",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 72
+    },
+    {
+        "Key": "AD-1293",
+        "Summary": "Renu Archana Lotus company number",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-14",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 72
+    },
+    {
+        "Key": "AD-872",
+        "Summary": "Carefully and matured Discuss with SM so that he does the roti alone because SSM is",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-14",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 72
+    },
+    {
+        "Key": "AD-8167",
+        "Summary": "Jai Mail, there is no other company who got 100 certifications in just two months.",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-15",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 71
+    },
+    {
+        "Key": "AD-7861",
+        "Summary": "anthropic subscriptions reimbursement from Intuitive",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-15",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 71
+    },
+    {
+        "Key": "AD-7476",
+        "Summary": " Extender",
+        "Assignee": "Pradip Ray",
+        "DueDate": "2026-07-15",
+        "Status": "Blockers",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 71
+    },
+    {
+        "Key": "AD-6699",
+        "Summary": "PL/BS",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-15",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 71
+    },
+    {
+        "Key": "AD-471",
+        "Summary": "Skin salon Speaker ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-15",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 71
+    },
+    {
+        "Key": "AD-7902",
+        "Summary": "nvidea certificate ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-16",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 70
+    },
+    {
+        "Key": "AD-7365",
+        "Summary": "Practice Directors' Message in Group by Biswajit",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 64
+    },
+    {
+        "Key": "AD-8429",
+        "Summary": "Corporate Governance, Ethics & Regulatory(23/7/2026)",
+        "Assignee": "Atreyee Majumder",
+        "DueDate": "2026-07-23",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 63
+    },
+    {
+        "Key": "AD-5969",
+        "Summary": "Neural network",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-30",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 56
+    },
+    {
+        "Key": "AD-5967",
+        "Summary": "Bubble rapper",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-30",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 56
+    },
+    {
+        "Key": "AD-5936",
+        "Summary": "Cnn convolutional neural networks ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-30",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 56
+    },
+    {
+        "Key": "AD-5931",
+        "Summary": "Start second and third shift for members new members",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-30",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 56
+    },
+    {
+        "Key": "AD-5927",
+        "Summary": "Pradeep 1000 loan return",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-30",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 56
+    },
+    {
+        "Key": "AD-5926",
+        "Summary": "Pradeep don't waste money don't take any more loans be very careful Control your greed always remember first you have to return your previous loans",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-30",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 56
+    },
+    {
+        "Key": "AD-5866",
+        "Summary": "Asith Diana research institute",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-30",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 56
+    },
+    {
+        "Key": "AD-5865",
+        "Summary": "After facial glow oils and products research ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-30",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 56
+    },
+    {
+        "Key": "AD-5863",
+        "Summary": "How to record voice messages in teams",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-30",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 56
+    },
+    {
+        "Key": "AD-5861",
+        "Summary": "Eat once a day and without fridge plan",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-30",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 56
+    },
+    {
+        "Key": "AD-5858",
+        "Summary": "Review and rewards every week",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-30",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 56
+    },
+    {
+        "Key": "AD-5840",
+        "Summary": "Monthly process check all salon members should be under renu, And salon manager not under SSM",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-30",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 56
+    },
+    {
+        "Key": "AD-5822",
+        "Summary": "Modify offer letters to include weekly rewards and remove salary reviews",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-30",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 56
+    },
+    {
+        "Key": "AD-5821",
+        "Summary": "Always plan ahead your leaves",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-30",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 56
+    },
+    {
+        "Key": "AD-5814",
+        "Summary": "Self excuse spreadsheet web testing webcasting",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-30",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 56
+    },
+    {
+        "Key": "AD-5678",
+        "Summary": "Self excuses spreadsheet to be considered for salary negotiations and reviews and performance reviews",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-30",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 56
+    },
+    {
+        "Key": "AD-5938",
+        "Summary": "Waterproof earbuds ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-31",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 55
+    },
+    {
+        "Key": "AD-5937",
+        "Summary": "Computer vision",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-31",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 55
+    },
+    {
+        "Key": "AD-5658",
+        "Summary": "Ats score",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-07-31",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 55
+    },
+    {
+        "Key": "AD-924",
+        "Summary": "ASSC 6 MONTH SALARY INCREMENT TARGETS SET",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 54
+    },
+    {
+        "Key": "AD-7031",
+        "Summary": "Gordiano",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 52
+    },
+    {
+        "Key": "AD-6723",
+        "Summary": "khog",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 52
+    },
+    {
+        "Key": "AD-5885",
+        "Summary": "Cred start up research",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 52
+    },
+    {
+        "Key": "AD-5189",
+        "Summary": "Zenoti booking software eye catchers",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 52
+    },
+    {
+        "Key": "AD-4632",
+        "Summary": "WATCH",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 52
+    },
+    {
+        "Key": "AD-1227",
+        "Summary": "Lotus classes",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 52
+    },
+    {
+        "Key": "AD-8366",
+        "Summary": "Gunda daa discussion list:",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-7465",
+        "Summary": "keep informing about Lisa. I do not need a raise to Jayno Calibra, Purview or Unity Catalog",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-7257",
+        "Summary": "Chett next project involvement request mail",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-7087",
+        "Summary": "Siemens Claude  ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-7026",
+        "Summary": "Raja",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-7025",
+        "Summary": "Aniket",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-7024",
+        "Summary": "Sound Director",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-6525",
+        "Summary": "Nvidia",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-6194",
+        "Summary": "Ikea Trolley",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-6173",
+        "Summary": "Babu rooms Babu marriage",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-5509",
+        "Summary": "Ladders Portal",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-5366",
+        "Summary": "Babu Gobindo discussion",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-5203",
+        "Summary": "Previous adjustments in salary processing must be there in the column in salary sheet",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-4596",
+        "Summary": "Budjet Categories",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-3245",
+        "Summary": "Screw and plug set",
+        "Assignee": "Pradip Ray",
+        "DueDate": "2026-08-04",
+        "Status": "Blockers",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-1315",
+        "Summary": "Files are coming Sharepoint, dataverse API Azure Foundry",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-1282",
+        "Summary": "Status of new apron's",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-1245",
+        "Summary": "Your first Target is Nano plastia and hydro machine",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-1003",
+        "Summary": "150 per head weekly team reaward if employees more than 4",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-865",
+        "Summary": "CALL ROY",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-75",
+        "Summary": "difference between seed funding and series A round",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-71",
+        "Summary": "How to accrue start up funds, what are the strategies and steps  ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 51
+    },
+    {
+        "Key": "AD-7991",
+        "Summary": "Share sharepoint traffic analysis and shared with Biswajit",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-05",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 50
+    },
+    {
+        "Key": "AD-7453",
+        "Summary": "Next Databricks Intuitive Certification Reimbursement ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-05",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 50
+    },
+    {
+        "Key": "AD-7398",
+        "Summary": "Anthropic Academy Certifications",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-05",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 50
+    },
+    {
+        "Key": "AD-7279",
+        "Summary": "Dr. Mahapatra Gujarat meet",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-05",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 50
+    },
+    {
+        "Key": "AD-7022",
+        "Summary": "BOB",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-05",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 50
+    },
+    {
+        "Key": "AD-6271",
+        "Summary": "Salon meetings",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-05",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 50
+    },
+    {
+        "Key": "AD-6215",
+        "Summary": "Speaker",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-05",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 50
+    },
+    {
+        "Key": "AD-5109",
+        "Summary": "Courier a Reimbursement From Technium Plus",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-05",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 50
+    },
+    {
+        "Key": "AD-1232",
+        "Summary": "Mithu Chakravarty celebration",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-05",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 50
+    },
+    {
+        "Key": "AD-1206",
+        "Summary": "Monitor debaruns market",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-05",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 50
+    },
+    {
+        "Key": "AD-714",
+        "Summary": "In ZOHO People Set five day weekly present condition for availing one weekly off",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-05",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 50
+    },
+    {
+        "Key": "AD-442",
+        "Summary": "conveyance",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-05",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 50
+    },
+    {
+        "Key": "AD-83",
+        "Summary": "Makeup items",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-05",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 50
+    },
+    {
+        "Key": "AD-64",
+        "Summary": "what is series A round",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-05",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 50
+    },
+    {
+        "Key": "AD-8430",
+        "Summary": "Finance and Risk of Board oversight(6/8/2026)",
+        "Assignee": "Atreyee Majumder",
+        "DueDate": "2026-08-06",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 49
+    },
+    {
+        "Key": "AD-7494",
+        "Summary": "target Being Anthropic Practice Leader",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-06",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 49
+    },
+    {
+        "Key": "AD-5686",
+        "Summary": "Employees aggregated total absence and total present days in Zoho reports Get that format of reports",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-06",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 49
+    },
+    {
+        "Key": "AD-902",
+        "Summary": "RST CLPBRD",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-06",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 49
+    },
+    {
+        "Key": "AD-7993",
+        "Summary": "leaves and early leaves, Share point file",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-6003",
+        "Summary": "gobo",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-6002",
+        "Summary": "Don't buy newspaper check it from Rajkumar the on Sunday",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5998",
+        "Summary": "Glass locks",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5996",
+        "Summary": "Donation box and advertisement system above water dispenser commercial",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5995",
+        "Summary": "Commercial water dispenser blue star",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5993",
+        "Summary": "rayling design",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5992",
+        "Summary": "Weekly spam check",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5991",
+        "Summary": "Unsubscribe Glassdoor and indeed",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5990",
+        "Summary": "Why bucket is not washed every day",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5980",
+        "Summary": "Vacuum cleaner for kesari",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5978",
+        "Summary": "Electric shutter",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5977",
+        "Summary": "Coral draw ATS test",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5965",
+        "Summary": "codex",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5884",
+        "Summary": "Terminate Youtube UPI payment monthly cloud guru Amit",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5837",
+        "Summary": "1k loan pr from sal",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5748",
+        "Summary": "Egg distributorship research",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5732",
+        "Summary": "Appoint packaging associate",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5731",
+        "Summary": "Have you asked the Zaika Who is well dressed shirt and trouser",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5728",
+        "Summary": "sb should show about hydrafacial",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5661",
+        "Summary": "SM web cleaning",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5206",
+        "Summary": "Mini savings accounts and deposit accounts for poor people and bizarre people and laborers",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5205",
+        "Summary": "Claim certification degree expenses",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 48
+    },
+    {
+        "Key": "AD-5979",
+        "Summary": "No shutters",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 47
+    },
+    {
+        "Key": "AD-7194",
+        "Summary": "Intuitive move to AI projects and department.",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 44
+    },
+    {
+        "Key": "AD-6229",
+        "Summary": "Neha next target handwaxing",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 44
+    },
+    {
+        "Key": "AD-5981",
+        "Summary": "Road dustbin area cleaning properly remove all spots",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 44
+    },
+    {
+        "Key": "AD-5831",
+        "Summary": "I was hired for adf but not many times I was asked to work with database and see next analytics but ultimately the judge me only on adf they are giving the reasons only for adf",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 44
+    },
+    {
+        "Key": "AD-5823",
+        "Summary": "L and D report by Chandana",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 44
+    },
+    {
+        "Key": "AD-5669",
+        "Summary": "Update latest resume in individual company sites",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 44
+    },
+    {
+        "Key": "AD-5511",
+        "Summary": "Check agents",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 44
+    },
+    {
+        "Key": "AD-5454",
+        "Summary": "Risks",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 44
+    },
+    {
+        "Key": "AD-5159",
+        "Summary": "Rent due date of dry fruits",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 44
+    },
+    {
+        "Key": "AD-5151",
+        "Summary": "Interior projects gant charts",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 44
+    },
+    {
+        "Key": "AD-4942",
+        "Summary": "Indigo bluechips gst",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 44
+    },
+    {
+        "Key": "AD-4670",
+        "Summary": "events",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 44
+    },
+    {
+        "Key": "AD-4643",
+        "Summary": "TRAVEL",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 44
+    },
+    {
+        "Key": "AD-1327",
+        "Summary": "Script organization",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 44
+    },
+    {
+        "Key": "AD-1298",
+        "Summary": "Always ask customers about their background",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 44
+    },
+    {
+        "Key": "AD-1288",
+        "Summary": "Mousumi invoice making check in office in person",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 44
+    },
+    {
+        "Key": "AD-1258",
+        "Summary": "Haircut Hairspray feedback",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 44
+    },
+    {
+        "Key": "AD-868",
+        "Summary": "When is next Doctor",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 44
+    },
+    {
+        "Key": "AD-8012",
+        "Summary": "Message Jai to get involved in the reports and analytics department for the company",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-12",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 43
+    },
+    {
+        "Key": "AD-7382",
+        "Summary": "Pradip loan shd be in zoho",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-12",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 43
+    },
+    {
+        "Key": "AD-7074",
+        "Summary": "Available Dashboard reports and charts in Zoho People",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-12",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 43
+    },
+    {
+        "Key": "AD-6851",
+        "Summary": "pedicure manicure chair & tub",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-12",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 43
+    },
+    {
+        "Key": "AD-6436",
+        "Summary": "Zoho ERP Dashboard Reports List",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-12",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 43
+    },
+    {
+        "Key": "AD-6214",
+        "Summary": "Reward verification - Friday, Saturday and Sunday no leaves",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-12",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 43
+    },
+    {
+        "Key": "AD-5928",
+        "Summary": "When accountant is adding budget for the current financial year he should also do the budgeting for the next year for salaries for each individual salary",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-12",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 43
+    },
+    {
+        "Key": "AD-2702",
+        "Summary": "Don't take small denominations pm",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-12",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 43
+    },
+    {
+        "Key": "AD-1688",
+        "Summary": "Check salary calculation sheet",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-12",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 43
+    },
+    {
+        "Key": "AD-1256",
+        "Summary": "Dasbin bags",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-12",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 43
+    },
+    {
+        "Key": "AD-7735",
+        "Summary": "Inspective anthropic databrics open AI product development strategy",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-13",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 42
+    },
+    {
+        "Key": "AD-8766",
+        "Summary": "Smart switch and plug for softbox ",
+        "Assignee": "Pradip Ray",
+        "DueDate": "2026-08-17",
+        "Status": "In Progress",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 38
+    },
+    {
+        "Key": "AD-7493",
+        "Summary": "you should. Jay should meet all the members of Chet's team at least once in a quarter",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-18",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 37
+    },
+    {
+        "Key": "AD-6048",
+        "Summary": "There should be a cap on the total payment of weekly rewards",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-18",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 37
+    },
+    {
+        "Key": "AD-6024",
+        "Summary": "Complaint against Gurgaon Khoj for implementing hire and fire policy unduly illegally",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-18",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 37
+    },
+    {
+        "Key": "AD-1290",
+        "Summary": "Neha hand waxing training",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-18",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 37
+    },
+    {
+        "Key": "AD-1268",
+        "Summary": "Check phenyl",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-18",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 37
+    },
+    {
+        "Key": "AD-8010",
+        "Summary": "ScrumMaster for our team intuitive",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-19",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 36
+    },
+    {
+        "Key": "AD-7796",
+        "Summary": "how the timer starts in Teams ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-19",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 36
+    },
+    {
+        "Key": "AD-7091",
+        "Summary": "Update Pradeep's Loan Restructuring File",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-19",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 36
+    },
+    {
+        "Key": "AD-6657",
+        "Summary": "Intuitive Hiring",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-19",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 36
+    },
+    {
+        "Key": "AD-6342",
+        "Summary": "epics permission shouldn't be regulated",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-19",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 36
+    },
+    {
+        "Key": "AD-6189",
+        "Summary": "Babuda the agreement new terms",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-19",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 36
+    },
+    {
+        "Key": "AD-5150",
+        "Summary": "Chandana must close the outside door properly",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-19",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 36
+    },
+    {
+        "Key": "AD-784",
+        "Summary": "salon products reordr",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-19",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 36
+    },
+    {
+        "Key": "AD-760",
+        "Summary": "Strict actual payments to Priyanshu with Rahul",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-19",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 36
+    },
+    {
+        "Key": "AD-198",
+        "Summary": "Sankey diagrams funnels",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-19",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 36
+    },
+    {
+        "Key": "AD-8431",
+        "Summary": "Digital, Cyber & M&A Readiness(20/8/2026)",
+        "Assignee": "Atreyee Majumder",
+        "DueDate": "2026-08-20",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 35
+    },
+    {
+        "Key": "AD-7265",
+        "Summary": "Intuitive should be early adopters of Microsoft fabric and palentir",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-20",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 35
+    },
+    {
+        "Key": "AD-4583",
+        "Summary": "CITY",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-20",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 35
+    },
+    {
+        "Key": "AD-881",
+        "Summary": "Move transfer coins rcrsv",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-27",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 28
+    },
+    {
+        "Key": "AD-757",
+        "Summary": "show GST refund statement on 7th",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-08-27",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 28
+    },
+    {
+        "Key": "AD-6354",
+        "Summary": "Knowledge graph",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 23
+    },
+    {
+        "Key": "AD-5746",
+        "Summary": "Lambda architecture steps",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 23
+    },
+    {
+        "Key": "AD-5274",
+        "Summary": "Software to live broadcastEmployee screens aOver a giant video wall",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 23
+    },
+    {
+        "Key": "AD-4566",
+        "Summary": "Store",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-01",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 23
+    },
+    {
+        "Key": "AD-7703",
+        "Summary": "What is the quickest way to join two large tables / optimize joins?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-02",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 22
+    },
+    {
+        "Key": "AD-7702",
+        "Summary": "What are your views on normalization vs. denormalization, and which is the best practice?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-02",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 22
+    },
+    {
+        "Key": "AD-7701",
+        "Summary": "What data modeling approach do you use - Star schema, Snowflake schema, or Galaxy?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-02",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 22
+    },
+    {
+        "Key": "AD-7182",
+        "Summary": "Databricks Apps",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-02",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 22
+    },
+    {
+        "Key": "AD-7058",
+        "Summary": "How do you handle API security?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-02",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 22
+    },
+    {
+        "Key": "AD-6066",
+        "Summary": "DM de steps",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-02",
+        "Status": "Blockers",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 22
+    },
+    {
+        "Key": "AD-5742",
+        "Summary": "Does databrics dlt work on serverless",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-02",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 22
+    },
+    {
+        "Key": "AD-178",
+        "Summary": "Create presentation and road map for timeline for r a i",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-02",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 22
+    },
+    {
+        "Key": "AD-70",
+        "Summary": "what are the expense areas in the first round ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-02",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 22
+    },
+    {
+        "Key": "AD-7755",
+        "Summary": "Have you worked with Oracle?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 21
+    },
+    {
+        "Key": "AD-7754",
+        "Summary": "What about your earlier experience - did you work with ADF, Synapse Analytics, SSIS, SSRS, Power BI?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 21
+    },
+    {
+        "Key": "AD-7753",
+        "Summary": "Have you worked with Looker / BigQuery / Firebase on GCP?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 21
+    },
+    {
+        "Key": "AD-7752",
+        "Summary": "Which cloud platforms have you worked with - Azure, AWS, GCP?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 21
+    },
+    {
+        "Key": "AD-7751",
+        "Summary": "How did you build the partnership with Palantir and onboard them for the BP project?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 21
+    },
+    {
+        "Key": "AD-7750",
+        "Summary": "Have you worked with Palantir (Foundry, AIP, Workshop)?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 21
+    },
+    {
+        "Key": "AD-7749",
+        "Summary": "How are you approaching the evaluation metrics for GenAI / agents within Databricks or Fabric?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 21
+    },
+    {
+        "Key": "AD-7748",
+        "Summary": "What kind of projects are you currently working on (around GenAI / Agentic AI)?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 21
+    },
+    {
+        "Key": "AD-7747",
+        "Summary": "Have you worked on migration projects?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 21
+    },
+    {
+        "Key": "AD-7746",
+        "Summary": "Can you give a brief introduction about yourself and your background?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 21
+    },
+    {
+        "Key": "AD-7697",
+        "Summary": "Can you walk through your Medallion architecture approach (Bronze, Silver, Gold layers) and what happens at each stage?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 21
+    },
+    {
+        "Key": "AD-7696",
+        "Summary": "How do you handle late-arriving data?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 21
+    },
+    {
+        "Key": "AD-7695",
+        "Summary": "How do you ingest data (real-time / streaming) into Databricks - what is your approach with endpoints, auto loaders, windowing, and checkpointing?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 21
+    },
+    {
+        "Key": "AD-7694",
+        "Summary": "What is Lakehouse architecture?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 21
+    },
+    {
+        "Key": "AD-6399",
+        "Summary": "Data Security at Source",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 21
+    },
+    {
+        "Key": "AD-5845",
+        "Summary": "Which data factory pipeline should I use in Fabric two inches data from Oracle DB and salesforce CRM and oracle DB",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 21
+    },
+    {
+        "Key": "AD-179",
+        "Summary": "Costing capex and opex for RAI",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 21
+    },
+    {
+        "Key": "AD-137",
+        "Summary": "RAI product features an problems PPT",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-03",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 21
+    },
+    {
+        "Key": "AD-7700",
+        "Summary": "Once a new row is identified, how do you ingest and merge it into the Bronze layer?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 20
+    },
+    {
+        "Key": "AD-7699",
+        "Summary": "Why is hash matching used (instead of primary key matching) for CDC?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 20
+    },
+    {
+        "Key": "AD-7698",
+        "Summary": "How do you handle incremental ingestion / CDC from a source like Oracle - how do you identify which rows have already been ingested?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 20
+    },
+    {
+        "Key": "AD-7286",
+        "Summary": "Walk me through any complex project that you have done recently involving data and AI.",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-04",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 20
+    },
+    {
+        "Key": "AD-7289",
+        "Summary": "What specifically did you do as part of that project?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-05",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 19
+    },
+    {
+        "Key": "AD-7288",
+        "Summary": "What was your role in that project?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-05",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 19
+    },
+    {
+        "Key": "AD-7762",
+        "Summary": "How are you using AI / GenAI in your current development work (chatbots, RAG, evaluation, monitoring)?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 17
+    },
+    {
+        "Key": "AD-7761",
+        "Summary": "How do you handle testing (unit testing, integration testing) in your projects, and do you leverage AI for it?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 17
+    },
+    {
+        "Key": "AD-7760",
+        "Summary": "Why Databricks over Synapse Analytics - what's your reasoning?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 17
+    },
+    {
+        "Key": "AD-7759",
+        "Summary": "The classic question - Why Databricks and not Snowflake? How do you justify this to a client?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 17
+    },
+    {
+        "Key": "AD-7758",
+        "Summary": "Can you walk us through a scenario - if a client has an on-prem system and wants to migrate to Microsoft Azure and Databricks, how would you architect the solution?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 17
+    },
+    {
+        "Key": "AD-7757",
+        "Summary": "How do you decide between hyperscalers (Azure / AWS / GCP) for a client?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 17
+    },
+    {
+        "Key": "AD-7291",
+        "Summary": "Did you have to challenge anyone? Can you share an example?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 17
+    },
+    {
+        "Key": "AD-7290",
+        "Summary": "What was the hardest decision you had to take as an architect in that project?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 17
+    },
+    {
+        "Key": "AD-5318",
+        "Summary": "Multi tenant System in fabric and how to work with it",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-07",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 17
+    },
+    {
+        "Key": "AD-7770",
+        "Summary": "Your closing question to the interviewer: Can you highlight what skills are really required to be successful in this role?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 16
+    },
+    {
+        "Key": "AD-7769",
+        "Summary": "Your closing question to the interviewer: Can you highlight what skills are really required to be successful in this role?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 16
+    },
+    {
+        "Key": "AD-7768",
+        "Summary": "Have you been directly involved in sales / presales activities, client pitches, and presentations? ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 16
+    },
+    {
+        "Key": "AD-7767",
+        "Summary": "What is your approach to data modeling (Star schema vs Snowflake schema)?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 16
+    },
+    {
+        "Key": "AD-7766",
+        "Summary": "How do you handle sensitive / PII data in your current Siemens / data center project?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 16
+    },
+    {
+        "Key": "AD-7765",
+        "Summary": "Can you tell us about the current project you are working on?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 16
+    },
+    {
+        "Key": "AD-7764",
+        "Summary": "Which industry domains have you worked in (BFSI, airlines, pharma, etc.)?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 16
+    },
+    {
+        "Key": "AD-7763",
+        "Summary": "Have you worked with MCP (Model Context Protocol)? Tell us about it.",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 16
+    },
+    {
+        "Key": "AD-7293",
+        "Summary": "What was the real business outcome for the customer?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 16
+    },
+    {
+        "Key": "AD-7292",
+        "Summary": "If you had to measure your outcomes in three bullet points, what did you achieve?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 16
+    },
+    {
+        "Key": "AD-6931",
+        "Summary": "what is the difference between CDCand incremental data andv",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 16
+    },
+    {
+        "Key": "AD-6901",
+        "Summary": "what are the different components in a data architecture diagram? Which are the important flow diagrams? Data Breaks Learned Descriptionv",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 16
+    },
+    {
+        "Key": "AD-6356",
+        "Summary": "Ontology",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 16
+    },
+    {
+        "Key": "AD-5867",
+        "Summary": "What are the strategies that I should adopt in order migrate 10 petabytes of data from on Prem to Azure SQL What Azure tools are available in order to reduce latency and bandwidth",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 16
+    },
+    {
+        "Key": "AD-5841",
+        "Summary": "What will happen if you suddenly receive one thousand messages instead of two messages per event from Kafka in a stream streaming pipeline what will happen how will you check it and how will you resolve it",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 16
+    },
+    {
+        "Key": "AD-5424",
+        "Summary": "Snowflake Data Sharing vs Delta Sharing (Databricks)",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 16
+    },
+    {
+        "Key": "AD-5273",
+        "Summary": "Product application bowls (small)",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 16
+    },
+    {
+        "Key": "AD-4755",
+        "Summary": "BILLING APP",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-08",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 16
+    },
+    {
+        "Key": "AD-7913",
+        "Summary": "What did you use to define the data products? What kind of data products did you design?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-7912",
+        "Summary": "Did you implement Medallion architecture as well?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-7911",
+        "Summary": "Was this a single platform?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-7910",
+        "Summary": "Why did you use Data Mesh for Emirates? What was the reason behind using this architecture?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-7909",
+        "Summary": "Have you worked on an end-to-end Lakehouse or complete Data Mesh architecture use case?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-7908",
+        "Summary": "How would the customer use this ontology that you created?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-7907",
+        "Summary": "Where does this ontology get saved?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-7906",
+        "Summary": "What service or tools did you use on Databricks to create the ontology?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-7905",
+        "Summary": "What did you use to create the ontology on data? Is this on Databricks?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-7904",
+        "Summary": "What customer did you sell the accelerator with ontology and knowledge graph to, and why was ontology and knowledge graph important to them?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-7900",
+        "Summary": "certifications from hard work, Stanford, Princeton harvard",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-7706",
+        "Summary": "How do you handle real-time / near real-time ingestion in Snowflake?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-7705",
+        "Summary": "What about CDC on Iceberg tables (Snowflake) - is the approach the same as Delta tables?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-7704",
+        "Summary": "Do you use caching for optimization? (Cache vs. Persist)",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-7295",
+        "Summary": "What exactly was your ownership in that project?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-7294",
+        "Summary": "In the Lambda architecture project, what architecture did you own versus what your company owned?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-6355",
+        "Summary": "Agent Bricks",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-5450",
+        "Summary": "Request Transfer to AI Project",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-1207",
+        "Summary": "All Staffs renu - sat, sun, tue",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-1196",
+        "Summary": "Customer had come should have given lives at 30 PM or 7:00 PM",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-09",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 15
+    },
+    {
+        "Key": "AD-8884",
+        "Summary": "Foldable laptop raiser-INT",
+        "Assignee": "Pradip Ray",
+        "DueDate": "2026-09-10",
+        "Status": "In Progress",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 14
+    },
+    {
+        "Key": "AD-8572",
+        "Summary": "Session 15 - Slot 1 - Foundations of Machine Learning and AI(AUG-22)",
+        "Assignee": "Atreyee Majumder",
+        "DueDate": "2026-09-10",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 14
+    },
+    {
+        "Key": "AD-8132",
+        "Summary": " large digital clock-INT",
+        "Assignee": "Pradip Ray",
+        "DueDate": "2026-09-10",
+        "Status": "In Progress",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 14
+    },
+    {
+        "Key": "AD-7708",
+        "Summary": "How important is data governance in your architecture, and how do you implement it (Unity Catalog vs. Microsoft Purview)?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-10",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 14
+    },
+    {
+        "Key": "AD-7707",
+        "Summary": "Have you worked with [a specific tool the interviewer mentioned]? (You answered you hadn't used it in your projects)",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-10",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 14
+    },
+    {
+        "Key": "AD-7355",
+        "Summary": "Renu Hydra facial discussion.",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-10",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 14
+    },
+    {
+        "Key": "AD-7298",
+        "Summary": "Was the processing done in the Bronze layer or Silver layer?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-10",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 14
+    },
+    {
+        "Key": "AD-7297",
+        "Summary": "Can you specifically highlight the latency you had and how you handled it in Databricks?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-10",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 14
+    },
+    {
+        "Key": "AD-7296",
+        "Summary": "Can you walk me through the Lambda architecture you architected?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-10",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 14
+    },
+    {
+        "Key": "AD-5727",
+        "Summary": "What are the prerequisites for databrics dlt",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-10",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 14
+    },
+    {
+        "Key": "AD-785",
+        "Summary": "sunday food plan",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-10",
+        "Status": "MY DAY",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 14
+    },
+    {
+        "Key": "AD-7871",
+        "Summary": "Session 9 - GGU DBA ET - Emerging Digital Technologies(Jun-7 2026)",
+        "Assignee": "Atreyee Majumder",
+        "DueDate": "2026-09-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 13
+    },
+    {
+        "Key": "AD-7710",
+        "Summary": "What is the difference between encryption and masking, and how do you apply them?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 13
+    },
+    {
+        "Key": "AD-7709",
+        "Summary": "How do you handle PII / sensitive data classification and labeling?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 13
+    },
+    {
+        "Key": "AD-7303",
+        "Summary": "How did you handle roles, permissions, and governance controls?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 13
+    },
+    {
+        "Key": "AD-7302",
+        "Summary": "Were there design patterns around data governance, controls, and privacy in Unity Catalog?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 13
+    },
+    {
+        "Key": "AD-7301",
+        "Summary": "How did you handle Azure Purview versus Unity Catalog?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 13
+    },
+    {
+        "Key": "AD-7300",
+        "Summary": "You mentioned Unity Catalog as well; what did you build as part of the overall architecture?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 13
+    },
+    {
+        "Key": "AD-7299",
+        "Summary": "How would your architecture handle late-arriving data?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-11",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 13
+    },
+    {
+        "Key": "AD-7716",
+        "Summary": "Have you done something similar in Snowflake (audit / config / alerting)?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-12",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 12
+    },
+    {
+        "Key": "AD-7715",
+        "Summary": "Which platforms / orchestration tools have you worked with for pipelines?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-12",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 12
+    },
+    {
+        "Key": "AD-7714",
+        "Summary": "What is a config table and how is it used in pipelines?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-12",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 12
+    },
+    {
+        "Key": "AD-7713",
+        "Summary": "How do you handle data validation and audit (e.g., when an expected 10 GB file arrives as 1 KB)?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-12",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 12
+    },
+    {
+        "Key": "AD-7712",
+        "Summary": "How do you handle data certificates and labels for classified data?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-12",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 12
+    },
+    {
+        "Key": "AD-7711",
+        "Summary": "Can encryption be done on a specific column? How is it done in Purview vs. Unity Catalog (UI vs. programmatic)?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-12",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 12
+    },
+    {
+        "Key": "AD-7309",
+        "Summary": "Have you built a RAG application?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-14",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 10
+    },
+    {
+        "Key": "AD-7308",
+        "Summary": "Have you built anything in AI, content generation, or code generation?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-14",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 10
+    },
+    {
+        "Key": "AD-7307",
+        "Summary": "Do you already have any accelerator or framework that you can reuse or build?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-14",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 10
+    },
+    {
+        "Key": "AD-7305",
+        "Summary": "Which Databricks components would you use for that migration?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-14",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 10
+    },
+    {
+        "Key": "AD-7304",
+        "Summary": "For a large Indian bank migrating from Cloudera, Informatica, and SAS Analytics to Databricks, how would you architect the solution?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-14",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 10
+    },
+    {
+        "Key": "AD-5849",
+        "Summary": "How to connect SAP BW with Fabric Lake House",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-14",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 10
+    },
+    {
+        "Key": "AD-5698",
+        "Summary": "What are the steps for investing data from Kaka and evet grid with all the consume consumers and other steps in databrics and fabric",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-14",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 10
+    },
+    {
+        "Key": "AD-8570",
+        "Summary": "Session 13 - Slot 1 - Foundations of Machine Learning and AI(AUG-15)",
+        "Assignee": "Atreyee Majumder",
+        "DueDate": "2026-09-15",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 9
+    },
+    {
+        "Key": "AD-7721",
+        "Summary": "How do you decide on cluster configuration / number of worker nodes and driver nodes?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-15",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 9
+    },
+    {
+        "Key": "AD-7720",
+        "Summary": "Can PySpark and SQL be used in the same notebook / same cell?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-15",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 9
+    },
+    {
+        "Key": "AD-7719",
+        "Summary": "Have you used [some specific Snowflake feature]? (You answered \"No, I did not\")",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-15",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 9
+    },
+    {
+        "Key": "AD-7718",
+        "Summary": "Which Snowflake connectors / ingestion methods have you used (SAP BW, APIs, Snowpipe, Open Flow)?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-15",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 9
+    },
+    {
+        "Key": "AD-7717",
+        "Summary": "Why did you choose Databricks over Snowflake for that particular architecture?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-15",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 9
+    },
+    {
+        "Key": "AD-7306",
+        "Summary": "How would you fast-track the migration for the customer?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-15",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 9
+    },
+    {
+        "Key": "AD-6902",
+        "Summary": "How to version data products in databrics",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-15",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 9
+    },
+    {
+        "Key": "AD-6232",
+        "Summary": "Nanoplastia",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-15",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 9
+    },
+    {
+        "Key": "AD-5864",
+        "Summary": "What are the strategies that I should adopt in order migrate 10 petabytes of data from on Prem to Azure SQL What Azure tools are available in order to reduce latency and bandwidth",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-15",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 9
+    },
+    {
+        "Key": "AD-208",
+        "Summary": "Hungry boys",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-15",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 9
+    },
+    {
+        "Key": "AD-8022",
+        "Summary": "get and share jay Intuitive Claude Partner Badge",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-16",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 8
+    },
+    {
+        "Key": "AD-8019",
+        "Summary": "bigger emergency light",
+        "Assignee": "Pradip Ray",
+        "DueDate": "2026-09-16",
+        "Status": "Blockers",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 8
+    },
+    {
+        "Key": "AD-7923",
+        "Summary": "Have you implemented any Agentic AI agents for customers?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-16",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 8
+    },
+    {
+        "Key": "AD-7922",
+        "Summary": "Have you used both Delta and Iceberg? Which one would you use and when?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-16",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 8
+    },
+    {
+        "Key": "AD-7921",
+        "Summary": "What would you use in MS Fabric for ETL, warehousing, and data governance?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-16",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 8
+    },
+    {
+        "Key": "AD-7920",
+        "Summary": "How does a Fabric-based data warehouse architecture look like?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-16",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 8
+    },
+    {
+        "Key": "AD-7919",
+        "Summary": "If a customer like Emirates wants to evaluate between MS Fabric and Databricks, how would you help them make the decision?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-16",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 8
+    },
+    {
+        "Key": "AD-7918",
+        "Summary": "Any other project you have done apart from Databricks? Any other hyperscaler or data platform?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-16",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 8
+    },
+    {
+        "Key": "AD-7917",
+        "Summary": "What are the data products inside a data domain? Name a data domain and a data product under it.",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-16",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 8
+    },
+    {
+        "Key": "AD-7916",
+        "Summary": "What were the different data domains?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-16",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 8
+    },
+    {
+        "Key": "AD-7915",
+        "Summary": "Where is the data mesh here? Where are the data products?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-16",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 8
+    },
+    {
+        "Key": "AD-7914",
+        "Summary": "How many data products did you create? Can you name one or two data products?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-16",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 8
+    },
+    {
+        "Key": "AD-7724",
+        "Summary": "Finally - your closing question to the interviewer: Can you tell me about the role, what you are looking for, and what is needed to be successful in this role?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-16",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 8
+    },
+    {
+        "Key": "AD-7723",
+        "Summary": "Are you familiar with zero-copy cloning (in Snowflake / Fabric)?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-16",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 8
+    },
+    {
+        "Key": "AD-7722",
+        "Summary": "How do you handle partitioning and data skew (partitionBy, repartition)?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-16",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 8
+    },
+    {
+        "Key": "AD-7464",
+        "Summary": "Next Databricks certification",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-16",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 8
+    },
+    {
+        "Key": "AD-6639",
+        "Summary": "Teams Groups, Rewards Monthly absence and leave reports",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-16",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 8
+    },
+    {
+        "Key": "AD-5714",
+        "Summary": "Designer for designing repetitive advertisements and separate advertisements for sign board TV on babus roof",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-16",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 8
+    },
+    {
+        "Key": "AD-5147",
+        "Summary": "All additional accessories that came with the commode should be attached during plumbing works",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-16",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 8
+    },
+    {
+        "Key": "AD-9080",
+        "Summary": "Netflix Coffee Mug-INT",
+        "Assignee": "Pradip Ray",
+        "DueDate": "2026-09-17",
+        "Status": "In Progress",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 7
+    },
+    {
+        "Key": "AD-9077",
+        "Summary": "Vacuum suction cup approval",
+        "Assignee": "Pradip Ray",
+        "DueDate": "2026-09-17",
+        "Status": "For Approval",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 7
+    },
+    {
+        "Key": "AD-8233",
+        "Summary": "boeing",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-17",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 7
+    },
+    {
+        "Key": "AD-7875",
+        "Summary": "Certification validator and resertification associate",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-17",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 7
+    },
+    {
+        "Key": "AD-7742",
+        "Summary": "how do you manage data refresh?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-17",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 7
+    },
+    {
+        "Key": "AD-7741",
+        "Summary": "in Databricks, how do you handle late-arriving data?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-17",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 7
+    },
+    {
+        "Key": "AD-7740",
+        "Summary": "what is data skew?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-17",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 7
+    },
+    {
+        "Key": "AD-7739",
+        "Summary": "what is liquid clustering?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-17",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 7
+    },
+    {
+        "Key": "AD-7738",
+        "Summary": "what are the major optimization techniques in Databricks?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-17",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 7
+    },
+    {
+        "Key": "AD-5784",
+        "Summary": "Fabric IQ",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-17",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 7
+    },
+    {
+        "Key": "AD-8989",
+        "Summary": "Session 6 - Slot 1 - Deep Learning & its Variants Sep  26  ",
+        "Assignee": "Atreyee Majumder",
+        "DueDate": "2026-09-18",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 6
+    },
+    {
+        "Key": "AD-8571",
+        "Summary": "Session 14 - Slot 1 - Foundations of Machine Learning and AI(AUG-16)",
+        "Assignee": "Atreyee Majumder",
+        "DueDate": "2026-09-18",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 6
+    },
+    {
+        "Key": "AD-7745",
+        "Summary": "what is Databricks Adaptive Query Executor?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-18",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 6
+    },
+    {
+        "Key": "AD-9084",
+        "Summary": "Powder case and puff",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-19",
+        "Status": "Blockers",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 5
+    },
+    {
+        "Key": "AD-8990",
+        "Summary": "Session 7 - Slot 1 - Deep Learning & its Variants Sep  27  ",
+        "Assignee": "Atreyee Majumder",
+        "DueDate": "2026-09-19",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 5
+    },
+    {
+        "Key": "AD-4575",
+        "Summary": "columbia south city",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-19",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 5
+    },
+    {
+        "Key": "AD-4573",
+        "Summary": "eye catchers south city",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-19",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 5
+    },
+    {
+        "Key": "AD-4569",
+        "Summary": "miniso south city",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-19",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 5
+    },
+    {
+        "Key": "AD-446",
+        "Summary": "Weekly pressure check every Saturday",
+        "Assignee": "Srijan Banerjee",
+        "DueDate": "2026-09-19",
+        "Status": "MY DAY",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 5
+    },
+    {
+        "Key": "AD-8433",
+        "Summary": "Stakeholder Engagement & Investor Relations(17/9/2026)",
+        "Assignee": "Atreyee Majumder",
+        "DueDate": "2026-09-21",
+        "Status": "MY DAY",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 3
+    },
+    {
+        "Key": "AD-8432",
+        "Summary": "Independent Directors - Risk and Rewards(3/9/2026)",
+        "Assignee": "Atreyee Majumder",
+        "DueDate": "2026-09-21",
+        "Status": "MY DAY",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 3
+    },
+    {
+        "Key": "AD-9101",
+        "Summary": "shoe brush",
+        "Assignee": "Pradip Ray",
+        "DueDate": "2026-09-22",
+        "Status": "For Approval",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 2
+    },
+    {
+        "Key": "AD-9060",
+        "Summary": "Big size Ruffpad with dual colour-INT",
+        "Assignee": "Pradip Ray",
+        "DueDate": "2026-09-22",
+        "Status": "In Progress",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 2
+    },
+    {
+        "Key": "AD-7934",
+        "Summary": "Are you involved in all stages of the presales process?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 2
+    },
+    {
+        "Key": "AD-7933",
+        "Summary": "In the presales process, what are the end-to-end stages from requirement gathering to proposal/SOW?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 2
+    },
+    {
+        "Key": "AD-7932",
+        "Summary": "Anything on Snowflake?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 2
+    },
+    {
+        "Key": "AD-7931",
+        "Summary": "What kind of on-prem enterprise systems have you worked on before cloud?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 2
+    },
+    {
+        "Key": "AD-7930",
+        "Summary": "Anything on GCP?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 2
+    },
+    {
+        "Key": "AD-7929",
+        "Summary": "Have you worked on AWS?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 2
+    },
+    {
+        "Key": "AD-7928",
+        "Summary": "How did you create the semantic layer for those agents?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 2
+    },
+    {
+        "Key": "AD-7927",
+        "Summary": "How did you make context available to those agents?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 2
+    },
+    {
+        "Key": "AD-7926",
+        "Summary": "How do the agents interact with each other?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 2
+    },
+    {
+        "Key": "AD-7925",
+        "Summary": "How did you create the agents?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 2
+    },
+    {
+        "Key": "AD-7924",
+        "Summary": "What do those agents do?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 2
+    },
+    {
+        "Key": "AD-7311",
+        "Summary": "How did you navigate a project failure or delivery issue?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 2
+    },
+    {
+        "Key": "AD-7310",
+        "Summary": "Have you had any project that failed or slipped out of your control?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-22",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 2
+    },
+    {
+        "Key": "AD-9085",
+        "Summary": "Usb Hub",
+        "Assignee": "Srijan Banerjee",
+        "DueDate": "2026-09-23",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 1
+    },
+    {
+        "Key": "AD-9062",
+        "Summary": "New earbud",
+        "Assignee": "Srijan Banerjee",
+        "DueDate": "2026-09-23",
+        "Status": "In Progress",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 1
+    },
+    {
+        "Key": "AD-9044",
+        "Summary": "Ask taxmation for 80g and 12ab regular registration",
+        "Assignee": "Rahul Paul",
+        "DueDate": "2026-09-23",
+        "Status": "MY DAY",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 1
+    },
+    {
+        "Key": "AD-8991",
+        "Summary": "Session 8 - Slot 1 - Deep Learning & its Variants (Oct  3 )",
+        "Assignee": "Atreyee Majumder",
+        "DueDate": "2026-09-23",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 1
+    },
+    {
+        "Key": "AD-8988",
+        "Summary": "  Session 5 - Slot 1 - Deep Learning & its Variants Sep  20",
+        "Assignee": "Atreyee Majumder",
+        "DueDate": "2026-09-23",
+        "Status": "MY DAY",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 1
+    },
+    {
+        "Key": "AD-8987",
+        "Summary": " Session 4 - Slot 1 - Deep Learning & its Variants Sep  19 ",
+        "Assignee": "Atreyee Majumder",
+        "DueDate": "2026-09-23",
+        "Status": "MY DAY",
+        "Sprint": "SPR SEP(14-19) 2026",
+        "DaysOverdue": 1
+    },
+    {
+        "Key": "AD-7314",
+        "Summary": "How would you reduce Databricks cost for the customer?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-23",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 1
+    },
+    {
+        "Key": "AD-7313",
+        "Summary": "If a customer says Databricks is too expensive, how would you navigate that situation?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-23",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 1
+    },
+    {
+        "Key": "AD-7312",
+        "Summary": "If a deliverable from your team is delayed and the customer escalates, how would you react?",
+        "Assignee": "Debrup Mondal",
+        "DueDate": "2026-09-23",
+        "Status": "To Do",
+        "Sprint": "SPR SEP(21-26) 2026",
+        "DaysOverdue": 1
+    }
+]
+);
+
+  initLiveSync();
+})();
+</script>
