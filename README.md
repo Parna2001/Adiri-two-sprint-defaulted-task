@@ -1,8 +1,13 @@
 # ADIRI Defaulted Tasks Dashboard
 
-A Python script that generates a self-contained HTML dashboard of defaulted tasks (overdue and not yet Done) across the last two sprints of the ADIRI Jira project (`AD`).
+A Python script that generates a self-contained HTML dashboard of unfinished tasks across the last two sprints of the ADIRI Jira project (`AD`), in two lists:
 
-The dashboard shows totals per sprint, a per-assignee bar chart, and sortable, filterable task tables with links back to Jira.
+- **Defaulted** - the current due date has passed and the task is not done.
+- **Rescheduled** - the due date is today or later, but it was pushed to a later date at least once (read from the Jira change history) and the task is not done. There is no upper limit on how many times.
+
+A task appears in one list only. Tasks with a comment such as "not required now", "on hold" or "postponed" (see `DEFERRAL_PHRASES` in the script) are left out and printed to the console so you can check the rule.
+
+The dashboard shows summary cards, a stacked per-assignee bar chart (Defaulted + Rescheduled), and sortable, filterable task tables with links back to Jira and an expandable due-date history per task.
 
 ## Files
 
@@ -35,4 +40,4 @@ export JIRA_API_TOKEN="your-api-token"
 python generate_defaulted_tasks_dashboard.py
 ```
 
-The script writes the result to `index.html`; open it in a browser.
+The script writes the result to `index.html`; open it in a browser. It also prints the counts per category, the tasks excluded by deferral comments, and the five most-rescheduled tasks.
