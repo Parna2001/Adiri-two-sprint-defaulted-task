@@ -5,7 +5,7 @@ A Python script that generates a self-contained HTML dashboard of unfinished tas
 - **Defaulted** - the current due date has passed and the task is not done.
 - **Rescheduled** - the due date is today or later, but it was pushed to a later date at least once (read from the Jira change history) and the task is not done. There is no upper limit on how many times.
 
-A task appears in one list only. Tasks with a comment such as "not required now", "on hold" or "postponed" (see `DEFERRAL_PHRASES` in the script) are left out and printed to the console so you can check the rule.
+A task appears in one list only. Tasks with a comment such as "not required now", "on hold" or "postponed" (see `DEFERRAL_PHRASES` in the script) are left out and printed to the console so you can check the rule. Exception: an overdue task in the active sprint always stays on the dashboard as Defaulted.
 
 The dashboard shows summary cards, a stacked per-assignee bar chart (Defaulted + Rescheduled), and sortable, filterable task tables with links back to Jira and an expandable due-date history per task.
 

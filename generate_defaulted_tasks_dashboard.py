@@ -7,7 +7,8 @@ Two categories are reported (a task is in exactly one of them):
   - Defaulted:   current due date is before today.
   - Rescheduled: current due date is today or later, but the due date was pushed later at
                  least once (found through the Jira changelog), however many times.
-Tasks with a "not required now" style comment (see DEFERRAL_PHRASES) are left out of both.
+Tasks with a "not required now" style comment (see DEFERRAL_PHRASES) are left out of both, except
+overdue tasks in the active sprint, which always stay Defaulted.
 """
 
 import json
@@ -16,7 +17,7 @@ import re
 import sys
 import time
 from datetime import date, datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import requests
 
@@ -30,11 +31,13 @@ SPRINT_FIELD = "customfield_10020"
 EXCLUDED_LABELS = [
     '"remainder"', "Adiri_monthly", "Adiri_weekly", "salon_weekly",
     "salon_monthly", "bimonthly", '"daily-task"', '"Payment-Duedate"', "Housekeeping",
+    '"consumer-loan"',
 ]
 OUTPUT_PATH = "index.html"
 
 # A comment containing any of these phrases (case-insensitive, whitespace-tolerant, whole words)
 # removes the task from the dashboard. Excluded tasks are printed to the console.
+# Exception: an overdue (Defaulted) task that is in the active sprint is always kept.
 DEFERRAL_PHRASES = [
     "not required now", "not required for now", "not needed now",
     "not needed for now", "will do later", "will be done later",
@@ -376,7 +379,7 @@ TEMPLATE = r"""<meta charset="utf-8">
   <div id="sections"></div>
 
   <footer class="note">
-    <b>Defaulted</b> = due date has passed and the task is not done. <b>Rescheduled</b> = due date is today or later, but it was pushed to a later date at least once (from the Jira change history) and the task is not done. A task is in one list only. Severity is days overdue for Defaulted tasks and days slipped (current due date minus original due date) for Rescheduled tasks. Excludes tasks labeled <code>reminder</code>, <code>adiri-monthly</code>, <code>adiri-weekly</code>, <code>salon weekly</code>, <code>salon monthly</code>, <code>bimonthly</code>, <code>daily task</code>, <code>payment duedate</code>, or <code>housekeeping</code>, and tasks with a comment saying the work is deferred or not required now. Click a column header to sort, the arrow at the start of a row to see its due-date history, and a task key to open it in Jira.
+    <b>Defaulted</b> = due date has passed and the task is not done. <b>Rescheduled</b> = due date is today or later, but it was pushed to a later date at least once (from the Jira change history) and the task is not done. A task is in one list only. Severity is days overdue for Defaulted tasks and days slipped (current due date minus original due date) for Rescheduled tasks. Excludes tasks labeled <code>reminder</code>, <code>adiri-monthly</code>, <code>adiri-weekly</code>, <code>salon weekly</code>, <code>salon monthly</code>, <code>bimonthly</code>, <code>daily task</code>, <code>payment duedate</code>, <code>housekeeping</code>, or <code>consumer-loan</code>, and tasks with a comment saying the work is deferred or not required now (overdue tasks in the active sprint are still shown). Click a column header to sort, the arrow at the start of a row to see its due-date history, and a task key to open it in Jira.
   </footer>
 </div>
 
@@ -930,9 +933,10 @@ def build_scope_jql(sprint_ids: List[int]) -> str:
     """Every unfinished, non-excluded AD task in the given sprints, whatever its due date."""
     ids = ",".join(str(i) for i in sprint_ids)
     labels = ", ".join(EXCLUDED_LABELS)
+    # "labels not in (...)" alone never matches tasks without labels, so they are allowed explicitly.
     return (
         f"project = {PROJECT_KEY} AND sprint in ({ids}) "
-        f"AND statusCategory != Done AND labels not in ({labels}) ORDER BY duedate ASC"
+        f"AND statusCategory != Done AND (labels is EMPTY OR labels not in ({labels})) ORDER BY duedate ASC"
     )
 
 
@@ -1019,7 +1023,8 @@ def embedded_histories(issue: Dict) -> Optional[List[Dict]]:
     return histories if complete else None
 
 
-def build_row(issue: Dict, sprint_ids: List[int], histories: List[Dict], today: date) -> Optional[Dict]:
+def build_row(issue: Dict, sprint_ids: List[int], histories: List[Dict], today: date,
+              active_sprint_ids: Optional[Set[int]] = None) -> Optional[Dict]:
     fields = issue.get("fields", {})
     current_due = norm_date(fields.get("duedate"))
     summary = summarize_due_history(parse_due_changes(histories), current_due)
@@ -1029,6 +1034,7 @@ def build_row(issue: Dict, sprint_ids: List[int], histories: List[Dict], today: 
 
     id_set = set(sprint_ids)
     sprint_match = [s for s in (fields.get(SPRINT_FIELD) or []) if s.get("id") in id_set]
+    in_active_sprint = any(s.get("id") in (active_sprint_ids or set()) for s in (fields.get(SPRINT_FIELD) or []))
     assignee = fields.get("assignee") or {}
     status = fields.get("status") or {}
     overdue = (today - date.fromisoformat(current_due)).days if category == CATEGORY_DEFAULTED else 0
@@ -1038,6 +1044,7 @@ def build_row(issue: Dict, sprint_ids: List[int], histories: List[Dict], today: 
         "Assignee": assignee.get("displayName") or "Unassigned",
         "Status": status.get("name", ""),
         "Sprint": sprint_match[0]["name"] if sprint_match else "Unknown sprint",
+        "InActiveSprint": in_active_sprint,
         "Category": category,
         "DueDate": current_due,
         "OriginalDueDate": summary["original"],
@@ -1048,7 +1055,8 @@ def build_row(issue: Dict, sprint_ids: List[int], histories: List[Dict], today: 
     }
 
 
-def collect_candidates(client: JiraClient, issues: List[Dict], sprint_ids: List[int], today: date) -> List[Dict]:
+def collect_candidates(client: JiraClient, issues: List[Dict], sprint_ids: List[int], today: date,
+                       active_sprint_ids: Optional[Set[int]] = None) -> List[Dict]:
     """Defaulted and Rescheduled candidates, before the deferral-comment exclusion."""
     rows: List[Dict] = []
     fetched_full = 0
@@ -1057,7 +1065,7 @@ def collect_candidates(client: JiraClient, issues: List[Dict], sprint_ids: List[
         if histories is None:
             histories = client.get_changelog(issue["key"])
             fetched_full += 1
-        row = build_row(issue, sprint_ids, histories, today)
+        row = build_row(issue, sprint_ids, histories, today, active_sprint_ids)
         if row:
             rows.append(row)
     print(f"  Changelogs read for {len(issues)} tasks ({fetched_full} fetched in full via the changelog endpoint)")
@@ -1122,13 +1130,18 @@ def find_deferral(comments: List[Dict], patterns: List[Tuple[str, "re.Pattern[st
     return None
 
 
+def keeps_despite_deferral(row: Dict) -> bool:
+    """An overdue task in the active sprint stays Defaulted even if a comment says it is deferred."""
+    return row["Category"] == CATEGORY_DEFAULTED and row["InActiveSprint"]
+
+
 def split_by_deferral(client: JiraClient, rows: List[Dict],
                       patterns: List[Tuple[str, "re.Pattern[str]"]]) -> Tuple[List[Dict], List[Dict]]:
     """(kept rows, excluded rows with a 'Deferral' entry). Only candidates' comments are fetched."""
     kept: List[Dict] = []
     excluded: List[Dict] = []
     for number, row in enumerate(rows, 1):
-        match = find_deferral(client.get_comments(row["Key"]), patterns)
+        match = None if keeps_despite_deferral(row) else find_deferral(client.get_comments(row["Key"]), patterns)
         if match:
             excluded.append({**row, "Deferral": match})
         else:
@@ -1230,7 +1243,8 @@ def main():
     )
     print(f"  Fetched {len(issues)} unfinished tasks in scope")
 
-    candidates = collect_candidates(client, issues, sprint_ids, today)
+    active_sprint_ids = {s["id"] for s in sprints if s.get("state") == "active"}
+    candidates = collect_candidates(client, issues, sprint_ids, today, active_sprint_ids)
     print(f"  {len(candidates)} are Defaulted or Rescheduled; checking their comments for deferral phrases...")
     rows, excluded = split_by_deferral(client, candidates, compile_deferral_patterns(DEFERRAL_PHRASES))
     rows = sort_rows(rows)
